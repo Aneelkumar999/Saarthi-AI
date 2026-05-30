@@ -12,18 +12,23 @@ import { getStoredUser, getToken, logout } from "@/lib/auth";
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [checked, setChecked] = useState(false);
-  const [userPhone, setUserPhone] = useState<string | null>(null);
+  const [checked, setChecked] = useState(() => {
+    if (typeof window !== "undefined") {
+      return !!getToken();
+    }
+    return false;
+  });
+  const [userPhone, setUserPhone] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return getStoredUser()?.phone ?? null;
+    }
+    return null;
+  });
 
   useEffect(() => {
-    const token = getToken();
-    if (!token) {
+    if (!getToken()) {
       router.replace("/login");
-      return;
     }
-
-    setUserPhone(getStoredUser()?.phone ?? null);
-    setChecked(true);
   }, [router]);
 
   function handleLogout() {

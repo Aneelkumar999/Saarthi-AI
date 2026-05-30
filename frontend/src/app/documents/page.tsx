@@ -11,10 +11,15 @@ import { createMockDocument, getDocuments, saveDocument, type SavedDocument } fr
 
 export default function DocumentsPage() {
   const [result, setResult] = useState<string>("");
-  const [savedDocs, setSavedDocs] = useState<SavedDocument[]>([]);
+  const [savedDocs, setSavedDocs] = useState<SavedDocument[]>(() => {
+    if (typeof window !== "undefined") {
+      return getDocuments();
+    }
+    return [];
+  });
 
   useEffect(() => {
-    setSavedDocs(getDocuments());
+    // Already initialized via lazy initializer
   }, []);
 
   async function onFileChange(file?: File) {

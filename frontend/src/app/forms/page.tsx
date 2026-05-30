@@ -9,12 +9,21 @@ import { Card } from "@/components/ui/card";
 import { buildFormFields, getDocuments, getRoadmap, type SavedDocument, type SavedRoadmap } from "@/lib/journey";
 
 export default function FormsPage() {
-  const [roadmap, setRoadmap] = useState<SavedRoadmap | null>(null);
-  const [docs, setDocs] = useState<SavedDocument[]>([]);
+  const [roadmap, setRoadmap] = useState<SavedRoadmap | null>(() => {
+    if (typeof window !== "undefined") {
+      return getRoadmap();
+    }
+    return null;
+  });
+  const [docs, setDocs] = useState<SavedDocument[]>(() => {
+    if (typeof window !== "undefined") {
+      return getDocuments();
+    }
+    return [];
+  });
 
   useEffect(() => {
-    setRoadmap(getRoadmap());
-    setDocs(getDocuments());
+    // Initialized via lazy initializers
   }, []);
 
   const formFields = buildFormFields(roadmap, docs);

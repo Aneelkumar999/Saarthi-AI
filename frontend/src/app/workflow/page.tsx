@@ -9,18 +9,20 @@ import { Card } from "@/components/ui/card";
 import { generateRoadmap, getRoadmap, saveRoadmap, type SavedRoadmap } from "@/lib/journey";
 
 export default function WorkflowPage() {
-  const [roadmap, setRoadmap] = useState<SavedRoadmap | null>(null);
+  const [roadmap, setRoadmap] = useState<SavedRoadmap | null>(() => {
+    if (typeof window !== "undefined") {
+      const saved = getRoadmap();
+      if (saved) return saved;
+
+      const fallback = generateRoadmap("I want to open a tea shop in Hyderabad");
+      saveRoadmap(fallback);
+      return fallback;
+    }
+    return null;
+  });
 
   useEffect(() => {
-    const saved = getRoadmap();
-    if (saved) {
-      setRoadmap(saved);
-      return;
-    }
-
-    const fallback = generateRoadmap("I want to open a tea shop in Hyderabad");
-    saveRoadmap(fallback);
-    setRoadmap(fallback);
+    // Initialized via lazy initializer
   }, []);
 
   if (!roadmap) {
