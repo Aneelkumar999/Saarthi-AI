@@ -1,28 +1,40 @@
 import os
+<<<<<<< HEAD
 import asyncio
 import json
 import re
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+=======
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_classic.output_parsers import ResponseSchema, StructuredOutputParser
+>>>>>>> origin/main
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from app.models import models
 
+<<<<<<< HEAD
 try:
     import google.generativeai as genai
 except ImportError:
     genai = None
 
+=======
+>>>>>>> origin/main
 load_dotenv()
 
 class AIService:
     def __init__(self):
         self.api_key = os.getenv("OPENAI_API_KEY")
+<<<<<<< HEAD
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
         self.gemini_model = None
         if genai and self.gemini_api_key:
             genai.configure(api_key=self.gemini_api_key)
             self.gemini_model = genai.GenerativeModel(os.getenv("GEMINI_MODEL", "gemini-2.0-flash"))
+=======
+>>>>>>> origin/main
         if self.api_key and self.api_key != "your_openai_api_key_here":
             self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
         else:
@@ -45,6 +57,39 @@ class AIService:
                 if len(word) > 3 and word in query_lower:
                     return {"intent_id": i['id'], "intent_name": i['name']}
             
+<<<<<<< HEAD
+=======
+        # 2. Try OpenAI if available
+        if self.llm:
+            intent_descriptions = "\n".join([f"- ID {i['id']}: {i['name']} ({i['description']})" for i in intents])
+
+            response_schemas = [
+                ResponseSchema(name="intent_id", description="The ID of the identified intent from the provided list, or null if no match found."),
+                ResponseSchema(name="intent_name", description="The name of the identified intent.")
+            ]
+            output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
+            format_instructions = output_parser.get_format_instructions()
+
+            prompt = ChatPromptTemplate.from_template(
+                "You are a government service assistant. Parse the citizen query and identify which intent they are interested in from the list below.\n"
+                "If the query doesn't match any intent precisely, return null for intent_id.\n\n"
+                "Available Intents:\n{intent_descriptions}\n\n"
+                "{format_instructions}\n"
+                "Query: {query}"
+            )
+
+            chain = prompt | self.llm | output_parser
+            try:
+                result = await chain.ainvoke({
+                    "query": query, 
+                    "intent_descriptions": intent_descriptions,
+                    "format_instructions": format_instructions
+                })
+                return result
+            except Exception as e:
+                print(f"AI Intent Parsing Error (likely quota): {e}")
+        
+>>>>>>> origin/main
         return {"intent_id": None, "intent_name": "Unknown"}
 
     async def get_chat_response(self, db: Session, message: str, context: str = ""):
@@ -76,6 +121,7 @@ class AIService:
         # 2. Fallback Response (Non-AI)
         return f"Namaste! I am your Saarthi. I can guide you through services like {intent_list}. Please type your goal clearly, and I will build a roadmap for you."
 
+<<<<<<< HEAD
     async def generate_roadmap(self, db: Session, message: str):
         if not self.gemini_model:
             return None
@@ -180,4 +226,6 @@ Rules:
             "response": str(data.get("response") or "I generated a personalized roadmap for your goal.")
         }
 
+=======
+>>>>>>> origin/main
 ai_service = AIService()

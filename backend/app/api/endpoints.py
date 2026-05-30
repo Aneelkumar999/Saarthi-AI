@@ -14,8 +14,12 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db)):
     intent_data = await ai_service.parse_intent(db, request.message)
     intent_id = intent_data.get("intent_id")
     
+<<<<<<< HEAD
     roadmap = await ai_service.generate_roadmap(db, request.message)
     response_text = roadmap.get("response") if roadmap else await ai_service.get_chat_response(db, request.message)
+=======
+    response_text = await ai_service.get_chat_response(db, request.message)
+>>>>>>> origin/main
     
     # If a clear intent is found, customize the response
     if intent_id:
@@ -23,8 +27,12 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db)):
     
     return ChatResponse(
         response=response_text,
+<<<<<<< HEAD
         intent_id=intent_id,
         roadmap=roadmap
+=======
+        intent_id=intent_id
+>>>>>>> origin/main
     )
 
 @router.get("/workflow/{intent_id}", response_model=List[WorkflowStep])

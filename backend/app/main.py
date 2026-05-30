@@ -4,6 +4,7 @@ from app.api.endpoints import router as api_router
 from app.api.documents import router as docs_router
 from app.api.forms import router as forms_router
 from app.api.auth import router as auth_router
+
 from app.core.init_db import init_db
 
 app = FastAPI(title="Saarthi AI API")

@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+<<<<<<< HEAD
     "target": "es5",
     "lib": [
       "dom",
@@ -7,6 +8,11 @@
       "esnext"
     ],
     "allowJs": false,
+=======
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+>>>>>>> origin/main
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -23,9 +29,13 @@
       }
     ],
     "paths": {
+<<<<<<< HEAD
       "@/*": [
         "./src/*"
       ]
+=======
+      "@/*": ["./src/*"]
+>>>>>>> origin/main
     }
   },
   "include": [
@@ -33,9 +43,16 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
+<<<<<<< HEAD
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
   ]
+=======
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+>>>>>>> origin/main
 }
