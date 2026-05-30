@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ChatInterface from "@/components/ChatInterface";
-import WorkflowStepper from "@/components/WorkflowStepper";
+import WorkflowStepper, { type WorkflowStep } from "@/components/WorkflowStepper";
 import DashboardHeader from "@/components/DashboardHeader";
 
 export default function Home() {
   const [intentId, setIntentId] = useState<number | null>(null);
-  const [workflow, setWorkflow] = useState<any[]>([]);
+  const [workflow, setWorkflow] = useState<WorkflowStep[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleIntentFound = async (id: number) => {
@@ -57,7 +57,7 @@ export default function Home() {
               </div>
               <h2 className="text-3xl font-bold text-slate-800 mb-4">Welcome to Saarthi AI</h2>
               <p className="text-slate-600 text-lg max-w-md">
-                Tell me what you want to do (e.g., "I want to open a tea shop") in the chat, and I'll build your government roadmap.
+                Tell me what you want to do (e.g., &quot;I want to open a tea shop&quot;) in the chat, and I&apos;ll build your government roadmap.
               </p>
             </div>
           )}

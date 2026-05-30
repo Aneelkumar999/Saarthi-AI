@@ -44,7 +44,7 @@ export default function ChatInterface({ onIntentFound }: { onIntentFound: (id: n
           onIntentFound(data.intent_id);
         }
       }
-    } catch (err) {
+    } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "I'm sorry, I'm having trouble connecting to my services. Please try again later." }]);
     } finally {
       setIsTyping(false);

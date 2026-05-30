@@ -2,9 +2,33 @@
 
 import { useState } from "react";
 
-export default function WorkflowStepper({ workflow }: { workflow: any[] }) {
+interface WorkflowService {
+  id: number;
+  name: string;
+  department: string;
+  sla_days: number;
+  description: string;
+  fee: number;
+}
+
+export interface WorkflowStep {
+  status: "completed" | "pending" | "upcoming";
+  service: WorkflowService;
+}
+
+interface FilledFormField {
+  label: string;
+  value: string;
+}
+
+interface FilledForm {
+  form_name: string;
+  fields: FilledFormField[];
+}
+
+export default function WorkflowStepper({ workflow }: { workflow: WorkflowStep[] }) {
   const [uploading, setUploading] = useState<string | null>(null);
-  const [filledForm, setFilledForm] = useState<any | null>(null);
+  const [filledForm, setFilledForm] = useState<FilledForm | null>(null);
 
   const handleFileUpload = async (serviceId: number, file: File) => {
     setUploading(serviceId.toString());
@@ -49,13 +73,13 @@ export default function WorkflowStepper({ workflow }: { workflow: any[] }) {
           
           {/* Step Number Circle */}
           <div className={`z-10 flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${
-            step.status === 'completed' 
-              ? 'bg-green-500 text-white' 
-              : step.status === 'pending' 
-                ? 'bg-indigo-600 text-white ring-4 ring-indigo-50' 
-                : 'bg-slate-200 text-slate-500'
+            step.status === "completed"
+              ? "bg-green-500 text-white"
+              : step.status === "pending"
+                ? "bg-indigo-600 text-white ring-4 ring-indigo-50"
+                : "bg-slate-200 text-slate-500"
           }`}>
-            {step.status === 'completed' ? (
+            {step.status === "completed" ? (
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
             ) : i + 1}
           </div>
@@ -118,11 +142,11 @@ export default function WorkflowStepper({ workflow }: { workflow: any[] }) {
             <div className="p-6 space-y-4">
               <div className="bg-amber-50 border border-amber-100 p-3 rounded-lg flex gap-3">
                 <svg className="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <p className="text-xs text-amber-800">We've auto-filled this form using data from your uploaded documents. Please review before submitting.</p>
+                <p className="text-xs text-amber-800">We&apos;ve auto-filled this form using data from your uploaded documents. Please review before submitting.</p>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
-                {filledForm.fields.map((field: any, idx: number) => (
+                {filledForm.fields.map((field, idx: number) => (
                   <div key={idx} className="space-y-1">
                     <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{field.label}</label>
                     <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-lg text-sm font-medium text-slate-700">
