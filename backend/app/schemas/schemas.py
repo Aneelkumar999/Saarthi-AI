@@ -40,3 +40,32 @@ class ChatResponse(BaseModel):
     response: str
     intent_id: Optional[int] = None
     workflow_id: Optional[str] = None
+<<<<<<< HEAD
+    roadmap: Optional[dict[str, Any]] = None
+
+class OtpSendRequest(BaseModel):
+    phone: str
+
+class OtpSendResponse(BaseModel):
+    message: str
+    expires_in_seconds: int
+    dev_otp: Optional[str] = None
+
+class OtpVerifyRequest(BaseModel):
+    phone: str
+    otp: str
+
+class AuthUserResponse(BaseModel):
+    id: int
+    phone: str
+    full_name: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class OtpVerifyResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: AuthUserResponse
+=======
+>>>>>>> origin/main
