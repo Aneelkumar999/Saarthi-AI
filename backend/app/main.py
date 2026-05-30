@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import router as api_router
 from app.api.documents import router as docs_router
 from app.api.forms import router as forms_router
+from app.api.auth import router as auth_router
 from app.core.init_db import init_db
 
 app = FastAPI(title="Saarthi AI API")
@@ -21,6 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(auth_router, prefix="/api/v1/auth")
 app.include_router(docs_router, prefix="/api/v1/documents")
 app.include_router(forms_router, prefix="/api/v1/forms")
 
