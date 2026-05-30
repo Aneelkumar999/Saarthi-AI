@@ -1,11 +1,11 @@
-🚀 Saarthi AI – Your AI Guide Through Government Services
+### 🚀 Saarthi AI – Your AI Guide Through Government Services
 
-📌 Overview
+### 📌 Overview
 Saarthi AI is an AI-powered civic assistant that helps citizens navigate complex government services through a simple conversational interface.
 
 Instead of searching through multiple government portals, understanding bureaucratic procedures, and manually filling forms, users simply describe their goal in natural language.
 
-For example:
+### For example:
 
 "I want to start a tea shop in Hyderabad."
 
@@ -25,7 +25,7 @@ Auto-filled application forms
 
 Multilingual guidance (English & Telugu)
 
-🎯 Problem Statement
+### 🎯 Problem Statement
 Citizens often face challenges while accessing government services due to:
 
 Complex procedures
@@ -44,11 +44,11 @@ Missing eligible welfare schemes
 
 These challenges lead to delays, frustration, and reduced adoption of digital governance services.
 
-💡 Solution
+### 💡 Solution
 Saarthi AI acts as a digital government guide that converts citizen goals into personalized action plans.
 
-Example
-User Input:
+### Example
+### User Input:
 
 I want to open a food truck business in Hyderabad.
 Saarthi AI Output:
@@ -69,11 +69,11 @@ Saarthi AI Output:
 
 ✅ Auto-Filled Application Forms
 
-✨ Key Features
-🧭 Goal-Based Service Navigation
+### ✨ Key Features
+### 🧭 Goal-Based Service Navigation
 Instead of searching for services, users simply describe their goal.
 
-Examples:
+### Examples:
 
 Start a business
 
@@ -85,8 +85,8 @@ Update marital status
 
 Obtain a trade license
 
-🤖 AI Government Journey Planner
-Generates:
+### 🤖 AI Government Journey Planner
+### Generates:
 
 Personalized workflows
 
@@ -96,8 +96,8 @@ Department dependencies
 
 Application sequence
 
-📄 Smart Document Analyzer
-Upload:
+### 📄 Smart Document Analyzer
+### Upload:
 
 Aadhaar Card
 
@@ -109,10 +109,10 @@ Certificates
 
 AI extracts relevant information automatically.
 
-✍️ Form Auto-Filling
+### ✍️ Form Auto-Filling
 Uses extracted data to pre-fill application forms and reduce manual effort.
 
-🌐 Multilingual Assistance
+### 🌐 Multilingual Assistance
 Supports:
 
 English
@@ -121,7 +121,7 @@ Telugu
 
 Government procedures are explained in simple language.
 
-🎁 Scheme Recommendation Engine
+### 🎁 Scheme Recommendation Engine
 Suggests government schemes based on:
 
 Age
@@ -134,7 +134,7 @@ Location
 
 Business type
 
-📋 Personalized Checklists
+### 📋 Personalized Checklists
 Provides downloadable:
 
 Task checklists
@@ -143,7 +143,7 @@ Required documents
 
 Application progress tracker
 
-🏗️ System Architecture
+### 🏗️ System Architecture
 User
  │
  ▼
@@ -159,8 +159,9 @@ FastAPI Backend
  │
  ▼
 Generated Roadmap + Forms + Recommendations
-🛠 Tech Stack
-Frontend
+
+### 🛠 Tech Stack
+### Frontend
 Next.js
 
 React
@@ -169,7 +170,7 @@ Tailwind CSS
 
 ShadCN UI
 
-Backend
+### Backend
 FastAPI
 
 Python
@@ -184,22 +185,22 @@ Tesseract OCR
 
 Google Vision API
 
-Database
+### Database
 PostgreSQL
 
 Supabase
 
-Authentication
+### Authentication
 Clerk
 
 Firebase Auth
 
-Deployment
+### Deployment
 Vercel
 
 Render
 
-🎯 Target Users
+### 🎯 Target Users
 Citizens
 
 Students
@@ -212,7 +213,7 @@ Small Business Owners
 
 Government Service Applicants
 
-📱 Sample User Flow
+###📱 Sample User Flow
 Step 1
 User enters:
 
@@ -241,7 +242,7 @@ AI auto-fills forms.
 Step 6
 User downloads checklist and completed application draft.
 
-🚀 MVP Scope (48-Hour Hackathon)
+### 🚀 MVP Scope (48-Hour Hackathon)
 Features Included
 AI Chat Interface
 
@@ -268,7 +269,7 @@ Marriage Certificate
 
 Small Business Registration
 
-📊 Expected Impact
+### 📊 Expected Impact
 Reduce citizen effort by 70%
 
 Improve accessibility to government services
@@ -279,18 +280,19 @@ Reduce form-filling errors
 
 Improve digital governance adoption
 
-🔥 What Makes Saarthi AI Unique?
-Existing Solutions	Saarthi AI
+### 🔥 What Makes Saarthi AI Unique?
+Existing Solutions               Saarthi AI
 Service-Based Navigation	Goal-Based Navigation
-Static Information	AI-Powered Personalized Guidance
-Manual Form Filling	Smart Auto-Fill
-Multiple Portals	Unified Experience
-Complex Language	Simple English & Telugu
-No Workflow Planning	AI Journey Planner
-🏆 Hackathon Value Proposition
+Static Information	        AI-Powered Personalized Guidance
+Manual Form Filling	        Smart Auto-Fill
+Multiple Portals	        Unified Experience
+Complex Language	        Simple English & Telugu
+No Workflow Planning	    AI Journey Planner
+
+### 🏆 Hackathon Value Proposition
 Saarthi AI transforms government services from a confusing process into a guided journey, helping citizens complete civic tasks faster, easier, and with confidence.
 
-👥 Team
+### 👥 Team
 Built with ❤️ for CivicTech Hackathon 2026
 
-Saarthi AI — Guiding Citizens Through Government Services. 🚀
+### Saarthi AI — Guiding Citizens Through Government Services. 🚀
