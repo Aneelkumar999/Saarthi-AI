@@ -4,7 +4,10 @@ from app.api.endpoints import router as api_router
 from app.api.documents import router as docs_router
 from app.api.forms import router as forms_router
 from app.api.auth import router as auth_router
+<<<<<<< HEAD
 from app.api.dynamic import router as dynamic_router
+=======
+>>>>>>> origin/main
 
 from app.core.init_db import init_db
 

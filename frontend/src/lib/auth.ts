@@ -29,6 +29,7 @@ export function isAuthenticated() {
   return Boolean(getToken());
 }
 
+<<<<<<< HEAD
 export function isAdmin() {
   const user = getStoredUser();
   if (!user) return false;
@@ -36,6 +37,8 @@ export function isAdmin() {
   return phone === "8919858239";
 }
 
+=======
+>>>>>>> origin/main
 export function logout() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);

@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 "use client";
 
 import { CheckCircle2, Clock3, LockKeyhole, MapPin, Upload, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { createMockDocument, saveDocument, getDocuments } from "@/lib/journey";
+=======
+import { CheckCircle2, Clock3, LockKeyhole, MapPin } from "lucide-react";
+import { Card } from "@/components/ui/card";
+>>>>>>> origin/main
 
 const statusIcon = {
   Ready: CheckCircle2,
@@ -11,6 +16,7 @@ const statusIcon = {
   Optional: MapPin
 };
 
+<<<<<<< HEAD
 function getUploadedDocTypes(): Set<string> {
   const docs = getDocuments();
   return new Set(docs.map((d) => d.type.toLowerCase()));
@@ -73,12 +79,20 @@ export function WorkflowStep({ step, onUpload }: { step: { id: number; title: st
     };
     input.click();
   }
+=======
+export function WorkflowStep({ step }: { step: { id: number; title: string; dept: string; status: string; days: string; documents: string[] } }) {
+  const Icon = statusIcon[step.status as keyof typeof statusIcon] ?? Clock3;
+>>>>>>> origin/main
 
   return (
     <Card className="relative overflow-hidden">
       <div className="absolute left-0 top-0 h-full w-1.5 bg-saffron" />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+<<<<<<< HEAD
         <div className="flex-1">
+=======
+        <div>
+>>>>>>> origin/main
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cream text-saffron">
               <Icon size={21} />
@@ -90,6 +104,7 @@ export function WorkflowStep({ step, onUpload }: { step: { id: number; title: st
           </div>
           <p className="mt-4 text-sm font-semibold text-slate-600">{step.dept}</p>
           <div className="mt-4 flex flex-wrap gap-2">
+<<<<<<< HEAD
             {step.documents.map((doc) => {
               const docType = getDocTypeFromName(doc);
               const isUploaded = uploadedTypes.has(docType.toLowerCase());
@@ -109,6 +124,13 @@ export function WorkflowStep({ step, onUpload }: { step: { id: number; title: st
                 </button>
               );
             })}
+=======
+            {step.documents.map((doc) => (
+              <span key={doc} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                {doc}
+              </span>
+            ))}
+>>>>>>> origin/main
           </div>
         </div>
         <div className="rounded-2xl bg-slate-50 p-4 text-sm">

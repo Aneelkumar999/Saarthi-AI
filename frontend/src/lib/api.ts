@@ -25,7 +25,11 @@ export async function sendOtp(phone: string) {
     });
 
     if (!response.ok) {
+<<<<<<< HEAD
       if (AUTH_MOCK_FALLBACK) return mockOtpResponse();
+=======
+      if (AUTH_MOCK_FALLBACK && response.status >= 500) return mockOtpResponse();
+>>>>>>> origin/main
       throw new Error(await parseError(response, "Unable to send OTP"));
     }
 
@@ -45,7 +49,11 @@ export async function verifyOtp(phone: string, otp: string) {
     });
 
     if (!response.ok) {
+<<<<<<< HEAD
       if (AUTH_MOCK_FALLBACK) return mockVerifyResponse(phone, otp);
+=======
+      if (AUTH_MOCK_FALLBACK && response.status >= 500) return mockVerifyResponse(phone, otp);
+>>>>>>> origin/main
       throw new Error(await parseError(response, "Unable to verify OTP"));
     }
 
@@ -121,6 +129,7 @@ export async function uploadDocument(file: File) {
 
   return response.json();
 }
+<<<<<<< HEAD
 
 export async function fetchSchemes(category?: string) {
   const url = category && category !== "All"
@@ -215,3 +224,5 @@ export async function fetchAdminAudit() {
   if (!response.ok) throw new Error("Failed to fetch audit logs");
   return response.json();
 }
+=======
+>>>>>>> origin/main

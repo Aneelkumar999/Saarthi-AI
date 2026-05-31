@@ -1,28 +1,60 @@
 import os
+<<<<<<< HEAD
 import asyncio
 import json
 import re
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+=======
+<<<<<<< HEAD
+import asyncio
+import json
+import re
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+=======
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_classic.output_parsers import ResponseSchema, StructuredOutputParser
+>>>>>>> origin/main
+>>>>>>> origin/main
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from app.models import models
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
 try:
     import google.generativeai as genai
 except ImportError:
     genai = None
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/main
+>>>>>>> origin/main
 load_dotenv()
 
 class AIService:
     def __init__(self):
         self.api_key = os.getenv("OPENAI_API_KEY")
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
         self.gemini_model = None
         if genai and self.gemini_api_key:
             genai.configure(api_key=self.gemini_api_key)
             self.gemini_model = genai.GenerativeModel(os.getenv("GEMINI_MODEL", "gemini-2.0-flash"))
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/main
+>>>>>>> origin/main
         if self.api_key and self.api_key != "your_openai_api_key_here":
             self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
         else:
@@ -44,7 +76,13 @@ class AIService:
             for word in name_words:
                 if len(word) > 3 and word in query_lower:
                     return {"intent_id": i['id'], "intent_name": i['name']}
+<<<<<<< HEAD
 
+=======
+            
+<<<<<<< HEAD
+=======
+>>>>>>> origin/main
         # 2. Try OpenAI if available
         if self.llm:
             intent_descriptions = "\n".join([f"- ID {i['id']}: {i['name']} ({i['description']})" for i in intents])
@@ -69,7 +107,12 @@ class AIService:
                 }
             except Exception as e:
                 print(f"AI Intent Parsing Error (likely quota): {e}")
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> origin/main
+>>>>>>> origin/main
         return {"intent_id": None, "intent_name": "Unknown"}
 
     async def get_chat_response(self, db: Session, message: str, context: str = ""):
@@ -101,12 +144,23 @@ class AIService:
         # 2. Fallback Response (Non-AI)
         return f"Namaste! I am your Saarthi. I can guide you through services like {intent_list}. Please type your goal clearly, and I will build a roadmap for you."
 
+<<<<<<< HEAD
     async def generate_roadmap(self, db: Session, message: str):
         # Try Gemini first
         if self.gemini_model:
             intents = self._get_available_intents(db)
             intent_descriptions = "\n".join([f"- {i['name']}: {i['description']}" for i in intents])
             prompt = f"""
+=======
+<<<<<<< HEAD
+    async def generate_roadmap(self, db: Session, message: str):
+        if not self.gemini_model:
+            return None
+
+        intents = self._get_available_intents(db)
+        intent_descriptions = "\n".join([f"- {i['name']}: {i['description']}" for i in intents])
+        prompt = f"""
+>>>>>>> origin/main
 You are Saarthi AI, an expert Telangana government services navigator.
 Generate a citizen-specific roadmap for the citizen goal below.
 
@@ -145,6 +199,7 @@ Rules:
 - Keep timeline as a number range string only.
 - Do not claim online submission to a government portal unless generally available.
 """
+<<<<<<< HEAD
             try:
                 result = await asyncio.to_thread(self.gemini_model.generate_content, prompt)
                 text = result.text or ""
@@ -351,6 +406,17 @@ Rules:
             ],
             "response": "I've identified your goal. Here is your personalized government service roadmap."
         }, message)
+=======
+
+        try:
+            result = await asyncio.to_thread(self.gemini_model.generate_content, prompt)
+            text = result.text or ""
+            data = self._parse_json(text)
+            return self._normalize_roadmap(data, message)
+        except Exception as exc:
+            print(f"Gemini Roadmap Error: {exc}")
+            return None
+>>>>>>> origin/main
 
     def _parse_json(self, text: str):
         cleaned = text.strip()
@@ -368,7 +434,11 @@ Rules:
     def _normalize_roadmap(self, data: dict, goal: str):
         steps = data.get("steps") or []
         normalized_steps = []
+<<<<<<< HEAD
         for index, step in enumerate(steps, start=1):
+=======
+        for index, step in enumerate(steps[:8], start=1):
+>>>>>>> origin/main
             normalized_steps.append({
                 "id": int(step.get("id") or index),
                 "title": str(step.get("title") or "Government service step"),
@@ -401,4 +471,9 @@ Rules:
             "response": str(data.get("response") or "I generated a personalized roadmap for your goal.")
         }
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/main
+>>>>>>> origin/main
 ai_service = AIService()

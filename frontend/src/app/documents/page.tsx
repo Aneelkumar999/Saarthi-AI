@@ -1,6 +1,10 @@
 "use client";
 
+<<<<<<< HEAD
 import { useRef, useState } from "react";
+=======
+import { useEffect, useState } from "react";
+>>>>>>> origin/main
 import { UploadCloud } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
@@ -8,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { uploadDocument } from "@/lib/api";
 import { createMockDocument, getDocuments, saveDocument, type SavedDocument } from "@/lib/journey";
+<<<<<<< HEAD
 import { useIsClient } from "@/lib/use-is-client";
 
 export default function DocumentsPage() {
@@ -16,6 +21,21 @@ export default function DocumentsPage() {
   const [savedDocs, setSavedDocs] = useState<SavedDocument[]>(() => isClient ? getDocuments() : []);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const displayDocs = isClient ? savedDocs : [];
+=======
+
+export default function DocumentsPage() {
+  const [result, setResult] = useState<string>("");
+  const [savedDocs, setSavedDocs] = useState<SavedDocument[]>(() => {
+    if (typeof window !== "undefined") {
+      return getDocuments();
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    // Already initialized via lazy initializer
+  }, []);
+>>>>>>> origin/main
 
   async function onFileChange(file?: File) {
     if (!file) return;
@@ -40,9 +60,12 @@ export default function DocumentsPage() {
 
     saveDocument(document);
     setSavedDocs(getDocuments());
+<<<<<<< HEAD
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+=======
+>>>>>>> origin/main
   }
 
   return (
@@ -56,7 +79,11 @@ export default function DocumentsPage() {
             <p className="mt-2 text-sm text-slate-500">PNG/JPG/PDF demo upload. Backend OCR route is used when available.</p>
             <label className="mt-6 inline-flex cursor-pointer rounded-2xl bg-saffron px-5 py-3 text-sm font-bold text-white hover:bg-orange-600">
               Select document
+<<<<<<< HEAD
               <input type="file" className="hidden" ref={fileInputRef} onChange={(event) => onFileChange(event.target.files?.[0])} />
+=======
+              <input type="file" className="hidden" onChange={(event) => onFileChange(event.target.files?.[0])} />
+>>>>>>> origin/main
             </label>
           </div>
           {result && <pre className="mt-5 max-h-64 overflow-auto rounded-2xl bg-navy p-4 text-xs leading-6 text-white">{result}</pre>}
@@ -64,13 +91,21 @@ export default function DocumentsPage() {
         <Card>
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-black text-navy">Checklist status</h2>
+<<<<<<< HEAD
             <Button variant="outline" onClick={() => downloadChecklist(displayDocs)}>Download checklist</Button>
+=======
+            <Button variant="outline">Download checklist</Button>
+>>>>>>> origin/main
           </div>
           <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200">
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 text-slate-500"><tr><th className="p-4">Document</th><th className="p-4">Status</th><th className="p-4">Extracted Fields</th><th className="p-4">Confidence</th></tr></thead>
               <tbody>
+<<<<<<< HEAD
                 {(displayDocs.length ? displayDocs : [
+=======
+                {(savedDocs.length ? savedDocs : [
+>>>>>>> origin/main
                   { id: "empty-aadhaar", name: "Aadhaar", type: "Aadhaar", state: "Missing", fields: {}, confidence: "-", createdAt: "" },
                   { id: "empty-pan", name: "PAN", type: "PAN", state: "Missing", fields: {}, confidence: "-", createdAt: "" },
                   { id: "empty-rental", name: "Rental Agreement", type: "Rental Agreement", state: "Missing", fields: {}, confidence: "-", createdAt: "" }
@@ -83,6 +118,7 @@ export default function DocumentsPage() {
     </AppShell>
   );
 }
+<<<<<<< HEAD
 
 function downloadChecklist(docs: SavedDocument[]) {
   const required = ["Aadhaar", "PAN", "Rental Agreement"];
@@ -106,3 +142,5 @@ function downloadText(filename: string, text: string) {
   link.click();
   URL.revokeObjectURL(url);
 }
+=======
+>>>>>>> origin/main

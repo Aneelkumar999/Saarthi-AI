@@ -40,6 +40,10 @@ class ChatResponse(BaseModel):
     response: str
     intent_id: Optional[int] = None
     workflow_id: Optional[str] = None
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
     roadmap: Optional[dict[str, Any]] = None
 
 class OtpSendRequest(BaseModel):
@@ -66,6 +70,7 @@ class OtpVerifyResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: AuthUserResponse
+<<<<<<< HEAD
 
 class UserProfileResponse(BaseModel):
     id: int
@@ -127,3 +132,7 @@ class ServiceResponse(BaseModel):
     description: Optional[str] = None
     class Config:
         from_attributes = True
+=======
+=======
+>>>>>>> origin/main
+>>>>>>> origin/main

@@ -37,6 +37,7 @@ const DOCS_KEY = "saarthi_saved_documents";
 export function generateRoadmap(goal: string): SavedRoadmap {
   const normalized = goal.toLowerCase();
 
+<<<<<<< HEAD
   // 10. Food Truck / Restaurant (check before generic restaurant)
   if (normalized.includes("food truck") || normalized.includes("restaurant") || normalized.includes("hotel") || normalized.includes("mess")) {
     return buildRoadmap(goal, {
@@ -121,6 +122,9 @@ export function generateRoadmap(goal: string): SavedRoadmap {
 
   // 3. Birth Certificate
   if (normalized.includes("birth") || normalized.includes("baby") || normalized.includes("newborn")) {
+=======
+  if (normalized.includes("birth")) {
+>>>>>>> origin/main
     return buildRoadmap(goal, {
       intent: "Birth certificate",
       location: inferLocation(goal),
@@ -130,15 +134,22 @@ export function generateRoadmap(goal: string): SavedRoadmap {
       teluguHint: "ముందుగా హాస్పిటల్ డిశ్చార్జ్ సమరీ మరియు తల్లిదండ్రుల ఆధార్ సిద్ధం చేయండి.",
       schemes: ["Newborn health registration guidance", "MeeSeva certificate support"],
       steps: [
+<<<<<<< HEAD
         step(1, "Hospital Verification", "Hospital / Municipality", "Ready", "1-2 days", ["Hospital discharge summary", "Parent Aadhaar", "Birth report"]),
         step(2, "Collect Documents", "Self", "Pending", "1-3 days", ["Parent Aadhaar", "Address proof", "Marriage certificate", "Photos"]),
         step(3, "Apply MeeSeva", "MeeSeva / Municipality", "Pending", "5-14 days", ["Form 1", "Hospital record", "Parent ID", "Address proof"]),
         step(4, "Verification", "Municipality Officer", "Pending", "3-7 days", ["Application acknowledgement"]),
         step(5, "Certificate Issued", "MeeSeva / Municipality", "Pending", "1-5 days", ["Application receipt", "Aadhaar"])
+=======
+        step(1, "Hospital birth record verification", "Hospital / Municipality", "Ready", "1-2 days", ["Hospital discharge summary", "Parent Aadhaar"]),
+        step(2, "Birth registration application", "GHMC / Municipality", "Pending", "5-14 days", ["Form 1", "Parent ID proof", "Address proof"]),
+        step(3, "Certificate download or collection", "MeeSeva / Municipality", "Pending", "1-5 days", ["Application acknowledgement"])
+>>>>>>> origin/main
       ]
     });
   }
 
+<<<<<<< HEAD
   // 4. Marriage Certificate
   if (normalized.includes("marriage") || normalized.includes("wedding") || normalized.includes("married")) {
     return buildRoadmap(goal, {
@@ -155,10 +166,43 @@ export function generateRoadmap(goal: string): SavedRoadmap {
         step(3, "Book Appointment", "Sub-Registrar Portal", "Pending", "1-3 days", ["Appointment receipt", "All documents"]),
         step(4, "Visit Sub-Registrar", "Sub-Registrar Office", "Pending", "1-2 days", ["Witness IDs", "Invitation card", "Marriage proof"]),
         step(5, "Certificate Issued", "Sub-Registrar Office", "Pending", "7-15 days", ["Application receipt", "Aadhaar"])
+=======
+  if (normalized.includes("farm") || normalized.includes("agri") || normalized.includes("land")) {
+    return buildRoadmap(goal, {
+      intent: "Agriculture land or farmer service",
+      location: inferLocation(goal),
+      title: "Agriculture service roadmap",
+      timeline: "10-30",
+      fastestPath: "Verify land ownership records and Aadhaar-bank linkage before applying for farmer schemes.",
+      teluguHint: "ముందుగా భూమి పత్రాలు మరియు బ్యాంక్ లింక్ అయిన ఆధార్ సిద్ధం చేయండి.",
+      schemes: ["Rythu Bandhu", "PM-KISAN", "Crop insurance"],
+      steps: [
+        step(1, "Land record verification", "Revenue Department", "Ready", "3-7 days", ["Pattadar passbook", "Aadhaar", "Survey number"]),
+        step(2, "Farmer profile update", "Agriculture Department", "Pending", "3-10 days", ["Bank passbook", "Aadhaar", "Mobile number"]),
+        step(3, "Scheme eligibility application", "Agriculture Department", "Pending", "7-15 days", ["Land record", "Bank details", "Crop details"])
       ]
     });
   }
 
+  if (normalized.includes("marriage")) {
+    return buildRoadmap(goal, {
+      intent: "Marriage registration",
+      location: inferLocation(goal),
+      title: "Marriage registration roadmap",
+      timeline: "15-30",
+      fastestPath: "Collect age proofs, address proofs, wedding photos, and witness IDs before slot booking.",
+      teluguHint: "సాక్షుల ఐడీలు మరియు వివాహ ఫోటోలు ముందుగానే సిద్ధం చేయండి.",
+      schemes: ["MeeSeva registration assistance"],
+      steps: [
+        step(1, "Document readiness check", "Registration Department", "Ready", "1-2 days", ["Bride ID", "Groom ID", "Age proof", "Photos"]),
+        step(2, "Marriage registration application", "Sub-Registrar Office", "Pending", "7-15 days", ["Witness IDs", "Invitation card", "Address proof"]),
+        step(3, "Certificate verification", "Sub-Registrar Office", "Pending", "7-15 days", ["Application receipt"])
+>>>>>>> origin/main
+      ]
+    });
+  }
+
+<<<<<<< HEAD
   // 5. Property Registration
   if (normalized.includes("property") || normalized.includes("land") || normalized.includes("house") || normalized.includes("plot") || normalized.includes("registration")) {
     return buildRoadmap(goal, {
@@ -255,6 +299,21 @@ export function generateRoadmap(goal: string): SavedRoadmap {
       step(2, "Online Application", "MeeSeva / e-District Portal", "Pending", "1-3 days", ["Application form", "ID proofs", "Fee receipt"]),
       step(3, "Verification", "Relevant Department", "Pending", "5-15 days", ["Application acknowledgement"]),
       step(4, "Certificate / Service Issued", "Department Office", "Pending", "3-7 days", ["Application receipt", "Aadhaar"])
+=======
+  return buildRoadmap(goal, {
+    intent: normalized.includes("business") || normalized.includes("shop") || normalized.includes("tea") ? "Small business registration" : "Government service request",
+    location: inferLocation(goal),
+    title: normalized.includes("tea") ? "Tea shop roadmap for Hyderabad" : "Small business service roadmap",
+    timeline: "15-20",
+    fastestPath: "Upload Aadhaar, PAN, rental agreement, and shop address proof, then start Labour registration first.",
+    teluguHint: "ముందుగా ఆధార్, పాన్, రెంటల్ అగ్రిమెంట్ అప్లోడ్ చేసి షాప్ రిజిస్ట్రేషన్ ప్రారంభించండి.",
+    schemes: ["PM SVANidhi", "MUDRA Shishu Loan", "Telangana T-PRIDE"],
+    steps: [
+      step(1, "Shop & Establishment Registration", "Telangana Labour Department", "Ready", "2-4 days", ["Aadhaar", "PAN", "Shop address proof"]),
+      step(2, "GHMC Trade License", "Greater Hyderabad Municipal Corporation", "Blocked by Step 1", "5-7 days", ["Rental agreement", "Photos", "NOC if applicable"]),
+      step(3, "FSSAI Basic Registration", "Food Safety and Standards Authority", "Pending", "7-10 days", ["Food business details", "ID proof", "Applicant photo"]),
+      step(4, "GST Readiness Check", "Commercial Taxes / GSTN", "Optional", "1-3 days", ["PAN", "Bank details", "Business address proof"])
+>>>>>>> origin/main
     ]
   });
 }
@@ -310,6 +369,7 @@ export function getDocuments(): SavedDocument[] {
 export function buildFormFields(roadmap: SavedRoadmap | null, docs: SavedDocument[]) {
   const mergedFields = docs.reduce<Record<string, string>>((fields, doc) => ({ ...fields, ...doc.fields }), {});
   const firstStep = roadmap?.steps[0];
+<<<<<<< HEAD
   const intent = roadmap?.intent?.toLowerCase() ?? "";
 
   const baseFields = [
@@ -444,6 +504,18 @@ export function buildFormFields(roadmap: SavedRoadmap | null, docs: SavedDocumen
     { label: "Application Type", value: firstStep?.title ?? "", source: firstStep ? "Workflow engine" : "", confidence: firstStep ? "100%" : "0%", required: true },
     { label: "Department", value: firstStep?.dept ?? "", source: firstStep ? "Knowledge base" : "", confidence: firstStep ? "100%" : "0%", required: true },
     { label: "Purpose / Reason", value: roadmap?.goal ?? "", source: roadmap ? "AI roadmap" : "", confidence: roadmap ? "95%" : "0%", required: true },
+=======
+
+  return [
+    { label: "Applicant Name", value: mergedFields.name ?? "Upload Aadhaar to auto-fill", source: mergedFields.name ? "Saved Aadhaar OCR" : "Missing document", confidence: mergedFields.name ? "98%" : "0%" },
+    { label: "Date of Birth", value: mergedFields.dob ?? "Upload Aadhaar/PAN", source: mergedFields.dob ? "Saved document OCR" : "Missing document", confidence: mergedFields.dob ? "94%" : "0%" },
+    { label: "Phone", value: mergedFields.phone ?? "Verified login phone", source: "Auth profile", confidence: "100%" },
+    { label: "Business / Service Goal", value: roadmap?.goal ?? "Ask Saarthi in chat first", source: roadmap ? "AI roadmap" : "Missing roadmap", confidence: roadmap ? "95%" : "0%" },
+    { label: "Application Type", value: firstStep?.title ?? "No workflow selected", source: roadmap ? "Workflow engine" : "Missing roadmap", confidence: roadmap ? "100%" : "0%" },
+    { label: "Department", value: firstStep?.dept ?? "No department selected", source: roadmap ? "Government knowledge base" : "Missing roadmap", confidence: roadmap ? "100%" : "0%" },
+    { label: "Address", value: mergedFields.address ?? roadmap?.location ?? "Upload address proof", source: mergedFields.address ? "Saved address proof OCR" : "Roadmap location", confidence: mergedFields.address ? "90%" : "70%" },
+    { label: "ID Number", value: mergedFields.idNumber ?? "Upload Aadhaar/PAN", source: mergedFields.idNumber ? "Saved document OCR" : "Missing document", confidence: mergedFields.idNumber ? "92%" : "0%" }
+>>>>>>> origin/main
   ];
 }
 

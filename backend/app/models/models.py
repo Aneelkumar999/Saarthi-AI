@@ -1,4 +1,12 @@
+<<<<<<< HEAD
 from sqlalchemy import Column, Integer, String, Float, Text, ARRAY, ForeignKey, TIMESTAMP, JSON
+=======
+<<<<<<< HEAD
+from sqlalchemy import Column, Integer, String, Float, Text, ARRAY, ForeignKey, TIMESTAMP, JSON
+=======
+from sqlalchemy import Column, Integer, String, Float, Text, ARRAY, ForeignKey, TIMESTAMP, JSON, Table
+>>>>>>> origin/main
+>>>>>>> origin/main
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
@@ -11,6 +19,10 @@ class User(Base):
     demographics = Column(JSON)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
 class OtpCode(Base):
     __tablename__ = "otp_codes"
     id = Column(Integer, primary_key=True, index=True)
@@ -21,6 +33,11 @@ class OtpCode(Base):
     consumed_at = Column(TIMESTAMP(timezone=True), nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/main
+>>>>>>> origin/main
 class Intent(Base):
     __tablename__ = "intents"
     id = Column(Integer, primary_key=True, index=True)
