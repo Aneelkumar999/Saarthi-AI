@@ -25,7 +25,11 @@ export async function sendOtp(phone: string) {
     });
 
     if (!response.ok) {
+<<<<<<< HEAD
+      if (AUTH_MOCK_FALLBACK) return mockOtpResponse();
+=======
       if (AUTH_MOCK_FALLBACK && response.status >= 500) return mockOtpResponse();
+>>>>>>> origin/main
       throw new Error(await parseError(response, "Unable to send OTP"));
     }
 
@@ -45,7 +49,11 @@ export async function verifyOtp(phone: string, otp: string) {
     });
 
     if (!response.ok) {
+<<<<<<< HEAD
+      if (AUTH_MOCK_FALLBACK) return mockVerifyResponse(phone, otp);
+=======
       if (AUTH_MOCK_FALLBACK && response.status >= 500) return mockVerifyResponse(phone, otp);
+>>>>>>> origin/main
       throw new Error(await parseError(response, "Unable to verify OTP"));
     }
 
@@ -121,3 +129,100 @@ export async function uploadDocument(file: File) {
 
   return response.json();
 }
+<<<<<<< HEAD
+
+export async function fetchSchemes(category?: string) {
+  const url = category && category !== "All"
+    ? `${API_BASE_URL}/schemes?category=${encodeURIComponent(category)}`
+    : `${API_BASE_URL}/schemes`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch schemes");
+  return response.json();
+}
+
+export async function fetchDashboardStats() {
+  const response = await fetch(`${API_BASE_URL}/dashboard/stats`);
+  if (!response.ok) throw new Error("Failed to fetch dashboard stats");
+  return response.json();
+}
+
+export async function fetchIntents() {
+  const response = await fetch(`${API_BASE_URL}/intents`);
+  if (!response.ok) throw new Error("Failed to fetch intents");
+  return response.json();
+}
+
+export async function fetchServices(department?: string) {
+  const url = department
+    ? `${API_BASE_URL}/services?department=${encodeURIComponent(department)}`
+    : `${API_BASE_URL}/services`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch services");
+  return response.json();
+}
+
+export async function fetchDepartments() {
+  const response = await fetch(`${API_BASE_URL}/departments`);
+  if (!response.ok) throw new Error("Failed to fetch departments");
+  return response.json();
+}
+
+export async function fetchProfile(token: string) {
+  const response = await fetch(`${API_BASE_URL}/profile`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error("Failed to fetch profile");
+  return response.json();
+}
+
+export async function updateProfile(token: string, data: Record<string, unknown>) {
+  const response = await fetch(`${API_BASE_URL}/profile`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error("Failed to update profile");
+  return response.json();
+}
+
+export async function fetchAdminStats() {
+  const response = await fetch(`${API_BASE_URL}/admin/stats`);
+  if (!response.ok) throw new Error("Failed to fetch admin stats");
+  return response.json();
+}
+
+export async function fetchAdminServices() {
+  const response = await fetch(`${API_BASE_URL}/admin/services`);
+  if (!response.ok) throw new Error("Failed to fetch admin services");
+  return response.json();
+}
+
+export async function createAdminService(service: { name: string; department: string; fee: number; sla_days: number; description: string }) {
+  const response = await fetch(`${API_BASE_URL}/admin/services`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(service)
+  });
+  if (!response.ok) throw new Error("Failed to create service");
+  return response.json();
+}
+
+export async function deleteAdminService(serviceId: number) {
+  const response = await fetch(`${API_BASE_URL}/admin/services/${serviceId}`, { method: "DELETE" });
+  if (!response.ok) throw new Error("Failed to delete service");
+  return response.json();
+}
+
+export async function fetchAdminKnowledgeBase() {
+  const response = await fetch(`${API_BASE_URL}/admin/knowledge-base`);
+  if (!response.ok) throw new Error("Failed to fetch knowledge base");
+  return response.json();
+}
+
+export async function fetchAdminAudit() {
+  const response = await fetch(`${API_BASE_URL}/admin/audit`);
+  if (!response.ok) throw new Error("Failed to fetch audit logs");
+  return response.json();
+}
+=======
+>>>>>>> origin/main

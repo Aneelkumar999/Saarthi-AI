@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models import models
 import pytesseract
+from pytesseract import TesseractNotFoundError
 from PIL import Image
 import io
 import json
@@ -17,7 +18,10 @@ async def upload_document(file: UploadFile = File(...), db: Session = Depends(ge
     # 2. Perform OCR (Basic implementation)
     try:
         image = Image.open(io.BytesIO(content))
-        text = pytesseract.image_to_string(image)
+        try:
+            text = pytesseract.image_to_string(image)
+        except TesseractNotFoundError:
+            text = "OCR engine unavailable locally; using demo extraction fallback."
         
         # 3. Simple Mock Extraction (In real project, use LLM to parse OCR text)
         extracted_data = {
