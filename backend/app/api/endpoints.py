@@ -18,7 +18,12 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db)):
     roadmap = await ai_service.generate_roadmap(db, request.message)
     response_text = roadmap.get("response") if roadmap else await ai_service.get_chat_response(db, request.message)
 =======
+<<<<<<< HEAD
+    roadmap = await ai_service.generate_roadmap(db, request.message)
+    response_text = roadmap.get("response") if roadmap else await ai_service.get_chat_response(db, request.message)
+=======
     response_text = await ai_service.get_chat_response(db, request.message)
+>>>>>>> origin/main
 >>>>>>> origin/main
     
     # If a clear intent is found, customize the response
@@ -31,7 +36,12 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db)):
         intent_id=intent_id,
         roadmap=roadmap
 =======
+<<<<<<< HEAD
+        intent_id=intent_id,
+        roadmap=roadmap
+=======
         intent_id=intent_id
+>>>>>>> origin/main
 >>>>>>> origin/main
     )
 

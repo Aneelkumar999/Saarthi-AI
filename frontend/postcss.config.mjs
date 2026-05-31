@@ -5,8 +5,14 @@ const config = {
     autoprefixer: {}
   }
 =======
+<<<<<<< HEAD
+    tailwindcss: {},
+    autoprefixer: {}
+  }
+=======
     "@tailwindcss/postcss": {},
   },
+>>>>>>> origin/main
 >>>>>>> origin/main
 };
 

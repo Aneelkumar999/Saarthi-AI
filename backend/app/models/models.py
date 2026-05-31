@@ -1,7 +1,11 @@
 <<<<<<< HEAD
 from sqlalchemy import Column, Integer, String, Float, Text, ARRAY, ForeignKey, TIMESTAMP, JSON
 =======
+<<<<<<< HEAD
+from sqlalchemy import Column, Integer, String, Float, Text, ARRAY, ForeignKey, TIMESTAMP, JSON
+=======
 from sqlalchemy import Column, Integer, String, Float, Text, ARRAY, ForeignKey, TIMESTAMP, JSON, Table
+>>>>>>> origin/main
 >>>>>>> origin/main
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -16,6 +20,9 @@ class User(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
 class OtpCode(Base):
     __tablename__ = "otp_codes"
     id = Column(Integer, primary_key=True, index=True)
@@ -26,7 +33,10 @@ class OtpCode(Base):
     consumed_at = Column(TIMESTAMP(timezone=True), nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/main
 >>>>>>> origin/main
 class Intent(Base):
     __tablename__ = "intents"
@@ -34,7 +44,8 @@ class Intent(Base):
     name = Column(String, nullable=False)
     description = Column(Text)
     trigger_keywords = Column(ARRAY(String))
-    
+    roadmap_template = Column(JSON, nullable=True)
+
     services = relationship("IntentService", back_populates="intent")
 
 class Service(Base):
@@ -84,3 +95,48 @@ class Scheme(Base):
     name = Column(String, nullable=False)
     eligibility_rules = Column(JSON)
     description = Column(Text)
+
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
+    full_name = Column(String)
+    phone = Column(String)
+    email = Column(String, nullable=True)
+    location = Column(String, default="Telangana")
+    district = Column(String, default="Hyderabad")
+    citizen_type = Column(String, default="general")
+    preferred_language = Column(String, default="English")
+    demographics = Column(JSON, default={})
+    consent_document_reuse = Column(Integer, default=1)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class UserDocument(Base):
+    __tablename__ = "user_documents"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    doc_type = Column(String, nullable=False)
+    filename = Column(String)
+    raw_text = Column(Text, nullable=True)
+    extracted_data = Column(JSON, default={})
+    confidence = Column(String, default="0%")
+    status = Column(String, default="uploaded")
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+class UserScheme(Base):
+    __tablename__ = "user_schemes"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    scheme_id = Column(Integer, ForeignKey("schemes.id"))
+    status = Column(String, default="recommended")
+    applied_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    action = Column(String, nullable=False)
+    detail = Column(JSON, default={})
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())

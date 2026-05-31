@@ -2,7 +2,11 @@
 <<<<<<< HEAD
   "name": "saarthi-ai-frontend",
 =======
+<<<<<<< HEAD
+  "name": "saarthi-ai-frontend",
+=======
   "name": "frontend",
+>>>>>>> origin/main
 >>>>>>> origin/main
   "version": "0.1.0",
   "private": true,
@@ -14,12 +18,17 @@
   },
   "dependencies": {
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
     "@types/node": "^20.12.12",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.19",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
+<<<<<<< HEAD
+=======
     "next": "^16.2.6",
     "postcss": "^8.5.10",
     "react": "^19.2.3",
@@ -32,11 +41,20 @@
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.6"
 =======
+>>>>>>> origin/main
     "next": "16.2.6",
+    "postcss": "^8.5.10",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5"
   },
   "devDependencies": {
+<<<<<<< HEAD
+    "eslint": "^9.39.4",
+    "eslint-config-next": "16.2.6"
+=======
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -45,6 +63,7 @@
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "typescript": "^5"
+>>>>>>> origin/main
 >>>>>>> origin/main
   }
 }
