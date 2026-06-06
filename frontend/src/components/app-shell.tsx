@@ -4,23 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-<<<<<<< HEAD
 import { LogOut, Menu, X, Sparkles } from "lucide-react";
 import { navItems } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { getStoredUser, getToken, logout } from "@/lib/auth";
 import { useIsClient } from "@/lib/use-is-client";
-=======
-import { LogOut, Menu, Sparkles } from "lucide-react";
-import { navItems } from "@/lib/data";
-import { cn } from "@/lib/utils";
-import { getStoredUser, getToken, logout } from "@/lib/auth";
->>>>>>> origin/main
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-<<<<<<< HEAD
   const isClient = useIsClient();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -42,46 +34,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const userPhone = getStoredUser()?.phone ?? null;
-=======
-  const [checked, setChecked] = useState(() => {
-    if (typeof window !== "undefined") {
-      return !!getToken();
-    }
-    return false;
-  });
-  const [userPhone, setUserPhone] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return getStoredUser()?.phone ?? null;
-    }
-    return null;
-  });
-
-  useEffect(() => {
-    if (!getToken()) {
-      router.replace("/login");
-    }
-  }, [router]);
->>>>>>> origin/main
 
   function handleLogout() {
     logout();
     router.replace("/login");
   }
 
-<<<<<<< HEAD
-=======
-  if (!checked) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-mist px-4 text-center">
-        <div>
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-navy text-white"><Sparkles /></div>
-          <p className="mt-4 font-bold text-slate-600">Checking secure session...</p>
-        </div>
-      </div>
-    );
-  }
-
->>>>>>> origin/main
   return (
     <div className="min-h-screen bg-mist">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
@@ -108,23 +66,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
           <div className="flex items-center gap-3">
             {userPhone && <span className="hidden rounded-full bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 sm:inline-flex">{userPhone}</span>}
-<<<<<<< HEAD
             <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">
               <LogOut size={16} /> Logout
             </button>
             <button onClick={() => setMobileOpen(!mobileOpen)} className="rounded-xl border border-slate-200 p-2 lg:hidden" aria-label="Open navigation">
-=======
-            <button onClick={handleLogout} className="hidden items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 sm:inline-flex">
-              <LogOut size={16} /> Logout
-            </button>
-            <button className="rounded-xl border border-slate-200 p-2 lg:hidden" aria-label="Open navigation">
->>>>>>> origin/main
               <Menu size={22} />
             </button>
           </div>
         </div>
       </header>
-<<<<<<< HEAD
 
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -160,8 +110,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-=======
->>>>>>> origin/main
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
     </div>
   );

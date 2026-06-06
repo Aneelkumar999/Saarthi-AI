@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,8 +6,8 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getToken, isAuthenticated } from "@/lib/auth";
-
+import { useRouter } from "next/navigation";
+import { getToken, isAuthenticated, logout } from "@/lib/auth";
 import { useIsClient } from "@/lib/use-is-client";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
@@ -42,6 +41,7 @@ const fields: FieldConfig[] = [
 
 export default function ProfilePage() {
   const isClient = useIsClient();
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [form, setForm] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,6 +61,11 @@ export default function ProfilePage() {
         const res = await fetch(`${API_BASE_URL}/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (res.status === 401) {
+          logout();
+          router.push("/login");
+          return;
+        }
         if (!res.ok) throw new Error("Failed to load profile");
         const data: Profile = await res.json();
         setProfile(data);
@@ -73,7 +78,7 @@ export default function ProfilePage() {
     }
 
     fetchProfile();
-  }, [authenticated]);
+  }, [authenticated, router]);
 
   if (!authenticated) {
     return (
@@ -115,6 +120,11 @@ export default function ProfilePage() {
         },
         body: JSON.stringify(form),
       });
+      if (res.status === 401) {
+        logout();
+        router.push("/login");
+        return;
+      }
       if (!res.ok) throw new Error("Failed to save profile");
       const updated: Profile = await res.json();
       setProfile(updated);
@@ -177,33 +187,6 @@ export default function ProfilePage() {
             </div>
           </div>
         ) : null}
-=======
-import { AppShell } from "@/components/app-shell";
-import { PageHeader } from "@/components/page-header";
-import { Card } from "@/components/ui/card";
-
-const profile = [
-  ["Name", "Anil Kumar"],
-  ["Preferred Language", "English + Telugu"],
-  ["Location", "Hyderabad, Telangana"],
-  ["Citizen Type", "Micro entrepreneur"],
-  ["Consent", "Document reuse enabled for selected services"]
-];
-
-export default function ProfilePage() {
-  return (
-    <AppShell>
-      <PageHeader eyebrow="Citizen profile" title="Reusable, consent-led service profile" description="Profile data reduces duplicate entry while preserving user consent, visibility, and control over PII usage." />
-      <Card className="max-w-3xl">
-        <div className="space-y-4">
-          {profile.map(([label, value]) => (
-            <div key={label} className="grid gap-2 rounded-2xl bg-slate-50 p-4 sm:grid-cols-[14rem_1fr]">
-              <p className="font-bold text-slate-500">{label}</p>
-              <p className="font-black text-navy">{value}</p>
-            </div>
-          ))}
-        </div>
->>>>>>> origin/main
       </Card>
     </AppShell>
   );

@@ -484,18 +484,18 @@ def init_db():
 
     # ── Demo Users ───────────────────────────────────────────────────
     demo_users = [
-        ('9000000001', 'Rajesh Kumar', {'age': 35, 'gender': 'male', 'occupation': 'farmer'}),
-        ('9000000002', 'Lakshmi Devi', {'age': 55, 'gender': 'female', 'occupation': 'homemaker'}),
-        ('9000000003', 'Mohammed Irfan', {'age': 28, 'gender': 'male', 'occupation': 'street_vendor'}),
-        ('9000000004', 'Priya Reddy', {'age': 32, 'gender': 'female', 'occupation': 'teacher'}),
-        ('9000000005', 'Venkatesh Naidu', {'age': 45, 'gender': 'male', 'occupation': 'businessman'}),
+        ('+919000000001', 'Rajesh Kumar', {'age': 35, 'gender': 'male', 'occupation': 'farmer'}),
+        ('+919000000002', 'Lakshmi Devi', {'age': 55, 'gender': 'female', 'occupation': 'homemaker'}),
+        ('+919000000003', 'Mohammed Irfan', {'age': 28, 'gender': 'male', 'occupation': 'street_vendor'}),
+        ('+919000000004', 'Priya Reddy', {'age': 32, 'gender': 'female', 'occupation': 'teacher'}),
+        ('+919000000005', 'Venkatesh Naidu', {'age': 45, 'gender': 'male', 'occupation': 'businessman'}),
     ]
 
     users = {}
     for phone, name, demo in demo_users:
         existing = db.query(models.User).filter(models.User.phone == phone).first()
         if not existing:
-            user = models.User(phone=phone, full_name=name, demographics=demo)
+            user = models.User(phone=phone, name=name, demographics=demo)
             db.add(user)
             db.flush()
             users[phone] = user
@@ -506,15 +506,15 @@ def init_db():
 
     # ── User Profiles ────────────────────────────────────────────────
     profiles_data = [
-        ('9000000001', 'Rajesh Kumar', '9000000001', None, 'Telangana', 'Warangal', 'farmer', 'Telugu',
+        ('+919000000001', 'Rajesh Kumar', '9000000001', None, 'Telangana', 'Warangal', 'farmer', 'Telugu',
          {'age': 35, 'gender': 'male', 'occupation': 'farmer', 'annual_income': 120000, 'category': 'bc', 'land_acres': 3}),
-        ('9000000002', 'Lakshmi Devi', '9000000002', None, 'Telangana', 'Hyderabad', 'senior_citizen', 'Telugu',
+        ('+919000000002', 'Lakshmi Devi', '9000000002', None, 'Telangana', 'Hyderabad', 'senior_citizen', 'Telugu',
          {'age': 55, 'gender': 'female', 'occupation': 'homemaker', 'annual_income': 80000, 'category': 'general'}),
-        ('9000000003', 'Mohammed Irfan', '9000000003', 'irfan.demo@email.com', 'Telangana', 'Secunderabad', 'vendor', 'Urdu',
+        ('+919000000003', 'Mohammed Irfan', '9000000003', 'irfan.demo@email.com', 'Telangana', 'Secunderabad', 'vendor', 'Urdu',
          {'age': 28, 'gender': 'male', 'occupation': 'street_vendor', 'annual_income': 96000, 'category': 'minority'}),
-        ('9000000004', 'Priya Reddy', '9000000004', 'priya.demo@email.com', 'Telangana', 'Hyderabad', 'general', 'Telugu',
+        ('+919000000004', 'Priya Reddy', '9000000004', 'priya.demo@email.com', 'Telangana', 'Hyderabad', 'general', 'Telugu',
          {'age': 32, 'gender': 'female', 'occupation': 'teacher', 'annual_income': 360000, 'category': 'general'}),
-        ('9000000005', 'Venkatesh Naidu', '9000000005', None, 'Telangana', 'Hyderabad', 'business', 'Telugu',
+        ('+919000000005', 'Venkatesh Naidu', '9000000005', None, 'Telangana', 'Hyderabad', 'business', 'Telugu',
          {'age': 45, 'gender': 'male', 'occupation': 'businessman', 'annual_income': 600000, 'category': 'general'}),
     ]
 
@@ -533,47 +533,47 @@ def init_db():
     # ── Sample Documents for Demo Users ──────────────────────────────
     sample_docs = [
         # (phone, doc_type, filename, raw_text, extracted_data, confidence, status)
-        ('9000000001', 'aadhaar', 'rajesh_aadhaar.pdf',
+        ('+919000000001', 'aadhaar', 'rajesh_aadhaar.pdf',
          'UIDAI Aadhaar Card\nName: RAJESH KUMAR\nDOB: 15/06/1991\nGender: Male\nAadhaar: XXXX-XXXX-3456\nAddress: H.No 4-5-6, Warangal, Telangana 506001',
          {'name': 'RAJESH KUMAR', 'dob': '15/06/1991', 'gender': 'Male', 'aadhaar_last4': '3456', 'address': 'Warangal, Telangana'},
          '95%', 'verified'),
 
-        ('9000000001', 'land_record', 'rajesh_land.pdf',
+        ('+919000000001', 'land_record', 'rajesh_land.pdf',
          'Telangana Land Records\nSurvey No: 45/2\nExtent: 3.0 Acres\nOwner: RAJESH KUMAR\nVillage: Kazipet, Warangal District\nLand Type: Dry Land / Agricultural',
          {'survey_no': '45/2', 'extent_acres': 3.0, 'owner': 'RAJESH KUMAR', 'village': 'Kazipet', 'district': 'Warangal', 'land_type': 'agricultural'},
          '90%', 'verified'),
 
-        ('9000000002', 'aadhaar', 'lakshmi_aadhaar.pdf',
+        ('+919000000002', 'aadhaar', 'lakshmi_aadhaar.pdf',
          'UIDAI Aadhaar Card\nName: LAKSHMI DEVI\nDOB: 22/03/1971\nGender: Female\nAadhaar: XXXX-XXXX-7890\nAddress: Flat 201, SR Nagar, Hyderabad 500038',
          {'name': 'LAKSHMI DEVI', 'dob': '22/03/1971', 'gender': 'Female', 'aadhaar_last4': '7890', 'address': 'SR Nagar, Hyderabad'},
          '97%', 'verified'),
 
-        ('9000000003', 'aadhaar', 'irfan_aadhaar.pdf',
+        ('+919000000003', 'aadhaar', 'irfan_aadhaar.pdf',
          'UIDAI Aadhaar Card\nName: MOHAMMAD IRFAN\nDOB: 10/11/1998\nGender: Male\nAadhaar: XXXX-XXXX-1234\nAddress: Balanagar, Secunderabad, Telangana 500018',
          {'name': 'MOHAMMAD IRFAN', 'dob': '10/11/1998', 'gender': 'Male', 'aadhaar_last4': '1234', 'address': 'Balanagar, Secunderabad'},
          '93%', 'verified'),
 
-        ('9000000003', 'voter_id', 'irfan_voter.pdf',
+        ('+919000000003', 'voter_id', 'irfan_voter.pdf',
          'Election Commission of India\nEPIC No: XYZ1234567\nName: MOHAMMAD IRFAN\nFather/Husband: ABDUL RAHAMAN\nAge: 28\nAddress: Balanagar, Secunderabad\nConstituency: Secunderabad Cantonment',
          {'epic_no': 'XYZ1234567', 'name': 'MOHAMMAD IRFAN', 'father': 'ABDUL RAHAMAN', 'constituency': 'Secunderabad Cantonment'},
          '88%', 'verified'),
 
-        ('9000000004', 'aadhaar', 'priya_aadhaar.pdf',
+        ('+919000000004', 'aadhaar', 'priya_aadhaar.pdf',
          'UIDAI Aadhaar Card\nName: PRIYA REDDY\nDOB: 05/08/1994\nGender: Female\nAadhaar: XXXX-XXXX-5678\nAddress: Madhapur, Hyderabad, Telangana 500084',
          {'name': 'PRIYA REDDY', 'dob': '05/08/1994', 'gender': 'Female', 'aadhaar_last4': '5678', 'address': 'Madhapur, Hyderabad'},
          '96%', 'verified'),
 
-        ('9000000004', 'degree_certificate', 'priya_degree.pdf',
+        ('+919000000004', 'degree_certificate', 'priya_degree.pdf',
          'Osmania University\nBachelor of Education (B.Ed)\nName: PRIYA REDDY\nYear of Passing: 2016\nPercentage: 78%\nRoll No: 1401-010-045',
          {'university': 'Osmania University', 'degree': 'B.Ed', 'year': 2016, 'percentage': 78.0, 'roll_no': '1401-010-045'},
          '92%', 'verified'),
 
-        ('9000000005', 'aadhaar', 'venkatesh_aadhaar.pdf',
+        ('+919000000005', 'aadhaar', 'venkatesh_aadhaar.pdf',
          'UIDAI Aadhaar Card\nName: VENKATESH NAIDU\nDOB: 12/01/1981\nGender: Male\nAadhaar: XXXX-XXXX-9012\nAddress: Ameerpet, Hyderabad, Telangana 500016',
          {'name': 'VENKATESH NAIDU', 'dob': '12/01/1981', 'gender': 'Male', 'aadhaar_last4': '9012', 'address': 'Ameerpet, Hyderabad'},
          '94%', 'verified'),
 
-        ('9000000005', 'business_registration', 'venkatesh_msme.pdf',
+        ('+919000000005', 'business_registration', 'venkatesh_msme.pdf',
          'Udyam Registration Certificate\nUdyam No: UDYAM-TS-05-0001234\nEnterprise: Naidu Traders\nType: Micro Enterprise\nOwner: VENKATESH NAIDU\nActivity: Wholesale Trading\nInvestment in Plant: Rs 8,00,000',
          {'udyam_no': 'UDYAM-TS-05-0001234', 'enterprise': 'Naidu Traders', 'type': 'Micro Enterprise', 'investment': 800000},
          '91%', 'verified'),

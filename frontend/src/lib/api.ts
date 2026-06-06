@@ -1,102 +1,94 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
-const AUTH_MOCK_FALLBACK = process.env.NEXT_PUBLIC_AUTH_MOCK_FALLBACK !== "false";
 
 async function parseError(response: Response, fallback: string) {
   try {
     const data = await response.json();
-    return data.detail ?? fallback;
+    return data.detail ?? data.message ?? fallback;
   } catch {
     return fallback;
   }
 }
 
 export type AuthUser = {
-  id: number;
-  phone: string;
-  full_name?: string | null;
+  id: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  is_verified: boolean;
+  avatar_url?: string | null;
+  created_at?: string | null;
 };
 
-export async function sendOtp(phone: string) {
+export async function sendOtp(identifier: string, purpose: string = "login") {
+  const response = await fetch(`${API_BASE_URL}/auth/send-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ identifier, purpose })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(await parseError(response, "Unable to send OTP"));
+  return data as { success: boolean; message: string; channel: string; masked_destination: string; expires_in_seconds: number; dev_otp?: string | null };
+}
+
+export async function verifyOtp(identifier: string, otp: string, purpose: string = "login") {
+  const response = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ identifier, otp, purpose })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(await parseError(response, "Invalid OTP"));
+  return data as { success: boolean; message: string; verified: boolean; token?: string | null };
+}
+
+export async function signup(name: string, email: string, phone_number: string, otp: string) {
+  const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email, phone_number, otp })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(await parseError(response, "Unable to register"));
+  return data as { access_token: string; refresh_token: string; token_type: string; expires_in: number; user: AuthUser };
+}
+
+export async function loginOtp(identifier: string, otp: string) {
+  const response = await fetch(`${API_BASE_URL}/auth/login-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ identifier, otp })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(await parseError(response, "Invalid OTP"));
+  return data as { access_token: string; refresh_token: string; token_type: string; expires_in: number; user: AuthUser };
+}
+
+export async function refreshAccessToken(refresh_token: string) {
+  const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh_token })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(await parseError(response, "Session expired"));
+  return data as { access_token: string; refresh_token: string; token_type: string; expires_in: number; user: AuthUser };
+}
+
+export async function logoutServer(refresh_token: string) {
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/otp/send`, {
+    await fetch(`${API_BASE_URL}/auth/logout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone })
+      body: JSON.stringify({ refresh_token })
     });
-
-    if (!response.ok) {
-<<<<<<< HEAD
-      if (AUTH_MOCK_FALLBACK) return mockOtpResponse();
-=======
-      if (AUTH_MOCK_FALLBACK && response.status >= 500) return mockOtpResponse();
->>>>>>> origin/main
-      throw new Error(await parseError(response, "Unable to send OTP"));
-    }
-
-    return response.json() as Promise<{ message: string; expires_in_seconds: number; dev_otp?: string | null }>;
-  } catch (error) {
-    if (AUTH_MOCK_FALLBACK) return mockOtpResponse();
-    throw error;
-  }
-}
-
-export async function verifyOtp(phone: string, otp: string) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/otp/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone, otp })
-    });
-
-    if (!response.ok) {
-<<<<<<< HEAD
-      if (AUTH_MOCK_FALLBACK) return mockVerifyResponse(phone, otp);
-=======
-      if (AUTH_MOCK_FALLBACK && response.status >= 500) return mockVerifyResponse(phone, otp);
->>>>>>> origin/main
-      throw new Error(await parseError(response, "Unable to verify OTP"));
-    }
-
-    return response.json() as Promise<{ access_token: string; token_type: string; user: AuthUser }>;
-  } catch (error) {
-    if (AUTH_MOCK_FALLBACK) return mockVerifyResponse(phone, otp);
-    throw error;
-  }
-}
-
-function mockOtpResponse() {
-  return Promise.resolve({
-    message: "Demo OTP generated locally because backend auth is unavailable",
-    expires_in_seconds: 300,
-    dev_otp: "123456"
-  });
-}
-
-function mockVerifyResponse(phone: string, otp: string) {
-  if (otp !== "123456") {
-    return Promise.reject(new Error("Invalid OTP. Use demo OTP 123456."));
-  }
-
-  return Promise.resolve({
-    access_token: `mock-token-${Date.now()}`,
-    token_type: "bearer",
-    user: {
-      id: 1,
-      phone: phone.startsWith("+") ? phone : `+91${phone.replace(/\D/g, "").slice(-10)}`,
-      full_name: "Demo Citizen"
-    }
-  });
+  } catch {}
 }
 
 export async function getCurrentUser(token: string) {
   const response = await fetch(`${API_BASE_URL}/auth/me`, {
     headers: { Authorization: `Bearer ${token}` }
   });
-
-  if (!response.ok) {
-    throw new Error(await parseError(response, "Session expired"));
-  }
-
+  if (!response.ok) throw new Error(await parseError(response, "Session expired"));
   return response.json() as Promise<AuthUser>;
 }
 
@@ -106,30 +98,17 @@ export async function sendChatMessage(message: string) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message })
   });
-
-  if (!response.ok) {
-    throw new Error("Unable to reach Saarthi AI chat service");
-  }
-
+  if (!response.ok) throw new Error("Unable to reach Saarthi AI chat service");
   return response.json() as Promise<{ response: string; intent_id?: number | null; roadmap?: unknown }>;
 }
 
 export async function uploadDocument(file: File) {
   const formData = new FormData();
   formData.append("file", file);
-
-  const response = await fetch(`${API_BASE_URL}/documents/upload`, {
-    method: "POST",
-    body: formData
-  });
-
-  if (!response.ok) {
-    throw new Error("Document OCR failed");
-  }
-
+  const response = await fetch(`${API_BASE_URL}/documents/upload`, { method: "POST", body: formData });
+  if (!response.ok) throw new Error("Document OCR failed");
   return response.json();
 }
-<<<<<<< HEAD
 
 export async function fetchSchemes(category?: string) {
   const url = category && category !== "All"
@@ -224,5 +203,3 @@ export async function fetchAdminAudit() {
   if (!response.ok) throw new Error("Failed to fetch audit logs");
   return response.json();
 }
-=======
->>>>>>> origin/main
