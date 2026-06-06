@@ -6,7 +6,6 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { WorkflowStep } from "@/components/workflow-step";
 import { Card } from "@/components/ui/card";
-<<<<<<< HEAD
 import { generateRoadmap, getRoadmap, saveRoadmap, getDocuments, type SavedRoadmap, type SavedDocument } from "@/lib/journey";
 import { useIsClient } from "@/lib/use-is-client";
 import { FileText, Check, Clock, AlertTriangle } from "lucide-react";
@@ -35,34 +34,12 @@ export default function WorkflowPage() {
   const uploadedDocs = isClient ? getDocuments() : [];
   const uniqueNeededDocs = roadmap ? [...new Set(roadmap.steps.flatMap((s) => s.documents))] : [];
 
-=======
-import { generateRoadmap, getRoadmap, saveRoadmap, type SavedRoadmap } from "@/lib/journey";
-
-export default function WorkflowPage() {
-  const [roadmap, setRoadmap] = useState<SavedRoadmap | null>(() => {
-    if (typeof window !== "undefined") {
-      const saved = getRoadmap();
-      if (saved) return saved;
-
-      const fallback = generateRoadmap("I want to open a tea shop in Hyderabad");
-      saveRoadmap(fallback);
-      return fallback;
-    }
-    return null;
-  });
-
-  useEffect(() => {
-    // Initialized via lazy initializer
-  }, []);
-
->>>>>>> origin/main
   if (!roadmap) {
     return <AppShell><p className="font-bold text-slate-600">Loading roadmap...</p></AppShell>;
   }
 
   return (
     <AppShell>
-<<<<<<< HEAD
       <PageHeader eyebrow="Approval dependency engine" title={roadmap.title} description={`Generated for: ${roadmap.goal}. Upload documents from each step, then review your auto-filled form.`} />
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
         <div className="space-y-6" key={docRefreshKey}>
@@ -110,13 +87,6 @@ export default function WorkflowPage() {
           </Card>
         </div>
 
-=======
-      <PageHeader eyebrow="Approval dependency engine" title={roadmap.title} description={`Generated for: ${roadmap.goal}. A dependency-aware journey showing approvals, documents, departments, and timelines.`} />
-      <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
-        <div className="space-y-5">
-          {roadmap.steps.map((step) => <WorkflowStep key={step.id} step={step} />)}
-        </div>
->>>>>>> origin/main
         <Card className="h-fit">
           <h2 className="text-xl font-black text-navy">Timeline estimate</h2>
           <p className="mt-4 text-5xl font-black text-saffron">{roadmap.timeline}</p>
@@ -126,7 +96,6 @@ export default function WorkflowPage() {
             <p><strong>Schemes:</strong> {roadmap.schemes.join(", ")}</p>
             <p><strong>Telugu:</strong> {roadmap.teluguHint}</p>
           </div>
-<<<<<<< HEAD
 
           <div className="mt-6 rounded-2xl bg-slate-50 p-4">
             <p className="text-sm font-bold text-navy">Document progress</p>
@@ -156,11 +125,6 @@ export default function WorkflowPage() {
 
           <div className="mt-6 grid gap-3">
             <Link href="/forms" className="rounded-2xl bg-saffron px-5 py-3 text-center text-sm font-bold text-white">Open Auto-Filled Form</Link>
-=======
-          <div className="mt-6 grid gap-3">
-            <Link href="/documents" className="rounded-2xl bg-saffron px-5 py-3 text-center text-sm font-bold text-white">Upload Required Docs</Link>
-            <Link href="/forms" className="rounded-2xl border border-slate-200 px-5 py-3 text-center text-sm font-bold text-navy">Open Auto-Filled Form</Link>
->>>>>>> origin/main
           </div>
         </Card>
       </div>

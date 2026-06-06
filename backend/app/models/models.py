@@ -1,52 +1,85 @@
-<<<<<<< HEAD
-from sqlalchemy import Column, Integer, String, Float, Text, ARRAY, ForeignKey, TIMESTAMP, JSON
-=======
-<<<<<<< HEAD
-from sqlalchemy import Column, Integer, String, Float, Text, ARRAY, ForeignKey, TIMESTAMP, JSON
-=======
-from sqlalchemy import Column, Integer, String, Float, Text, ARRAY, ForeignKey, TIMESTAMP, JSON, Table
->>>>>>> origin/main
->>>>>>> origin/main
+import uuid
+from sqlalchemy import Column, Integer, String, Float, Text, Boolean, ForeignKey, TIMESTAMP, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
 
+
+def gen_uuid():
+    return uuid.uuid4().hex
+
+
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    phone = Column(String, unique=True, index=True, nullable=False)
-    full_name = Column(String)
+    id = Column(String, primary_key=True, default=gen_uuid)
+    name = Column(String, nullable=False, default="")
+    email = Column(String, unique=True, index=True, nullable=True)
+    phone = Column(String, unique=True, index=True, nullable=True)
+    is_verified = Column(Boolean, default=False)
+    avatar_url = Column(String, nullable=True)
     demographics = Column(JSON)
+    last_login_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    last_login_ip = Column(String, nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    profile = relationship("UserProfile", back_populates="user", uselist=False)
+    journeys = relationship("UserJourney", back_populates="user")
+    documents = relationship("UserDocument", back_populates="user")
+    sessions = relationship("UserSession", back_populates="user")
+
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    token_hash = Column(String, nullable=False, index=True)
+    expires_at = Column(TIMESTAMP(timezone=True), nullable=False)
+    revoked = Column(Boolean, default=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
+
 class OtpCode(Base):
     __tablename__ = "otp_codes"
-    id = Column(Integer, primary_key=True, index=True)
-    phone = Column(String, index=True, nullable=False)
-    otp_hash = Column(String, nullable=False)
+    id = Column(String, primary_key=True, default=gen_uuid)
+    channel = Column(String, nullable=False, default="phone")
+    recipient = Column(String, nullable=False, index=True)
+    otp_code = Column(String, nullable=False)
+    purpose = Column(String, nullable=False, default="login")
     expires_at = Column(TIMESTAMP(timezone=True), nullable=False)
     attempts = Column(Integer, default=0, nullable=False)
+    verified = Column(Boolean, default=False)
     consumed_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    ip_address = Column(String, nullable=True)
+    user_agent = Column(String, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/main
->>>>>>> origin/main
+
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    ip_address = Column(String, nullable=True)
+    user_agent = Column(String, nullable=True)
+    login_channel = Column(String, nullable=True)
+    login_identifier = Column(String, nullable=True)
+    expires_at = Column(TIMESTAMP(timezone=True), nullable=False)
+    revoked = Column(Boolean, default=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="sessions")
+
+
 class Intent(Base):
     __tablename__ = "intents"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     description = Column(Text)
-    trigger_keywords = Column(ARRAY(String))
+    trigger_keywords = Column(JSON)
     roadmap_template = Column(JSON, nullable=True)
 
     services = relationship("IntentService", back_populates="intent")
+
 
 class Service(Base):
     __tablename__ = "services"
@@ -57,11 +90,13 @@ class Service(Base):
     sla_days = Column(Integer)
     description = Column(Text)
 
+
 class ServiceDependency(Base):
     __tablename__ = "service_dependencies"
     id = Column(Integer, primary_key=True, index=True)
     service_id = Column(Integer, ForeignKey("services.id"))
     requires_service_id = Column(Integer, ForeignKey("services.id"))
+
 
 class IntentService(Base):
     __tablename__ = "intent_services"
@@ -69,17 +104,21 @@ class IntentService(Base):
     intent_id = Column(Integer, ForeignKey("intents.id"))
     service_id = Column(Integer, ForeignKey("services.id"))
     step_order = Column(Integer, nullable=False)
-    
+
     intent = relationship("Intent", back_populates="services")
     service = relationship("Service")
+
 
 class UserJourney(Base):
     __tablename__ = "user_journeys"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(String, ForeignKey("users.id"))
     intent_id = Column(Integer, ForeignKey("intents.id"))
     status = Column(String, default="active")
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="journeys")
+
 
 class JourneyStep(Base):
     __tablename__ = "journey_steps"
@@ -89,6 +128,7 @@ class JourneyStep(Base):
     status = Column(String, default="pending")
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
 
+
 class Scheme(Base):
     __tablename__ = "schemes"
     id = Column(Integer, primary_key=True, index=True)
@@ -96,10 +136,11 @@ class Scheme(Base):
     eligibility_rules = Column(JSON)
     description = Column(Text)
 
+
 class UserProfile(Base):
     __tablename__ = "user_profiles"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
+    user_id = Column(String, ForeignKey("users.id"), unique=True)
     full_name = Column(String)
     phone = Column(String)
     email = Column(String, nullable=True)
@@ -112,10 +153,13 @@ class UserProfile(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
 
+    user = relationship("User", back_populates="profile")
+
+
 class UserDocument(Base):
     __tablename__ = "user_documents"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(String, ForeignKey("users.id"))
     doc_type = Column(String, nullable=False)
     filename = Column(String)
     raw_text = Column(Text, nullable=True)
@@ -124,19 +168,23 @@ class UserDocument(Base):
     status = Column(String, default="uploaded")
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
+    user = relationship("User", back_populates="documents")
+
+
 class UserScheme(Base):
     __tablename__ = "user_schemes"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(String, ForeignKey("users.id"))
     scheme_id = Column(Integer, ForeignKey("schemes.id"))
     status = Column(String, default="recommended")
     applied_at = Column(TIMESTAMP(timezone=True), nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
+
 class AuditLog(Base):
     __tablename__ = "audit_logs"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=True)
     action = Column(String, nullable=False)
     detail = Column(JSON, default={})
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())

@@ -1,10 +1,6 @@
 "use client";
 
-<<<<<<< HEAD
 import { useEffect, useRef, useState } from "react";
-=======
-import { useState } from "react";
->>>>>>> origin/main
 import Link from "next/link";
 import { Bot, Mic, Send, User } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
@@ -16,28 +12,18 @@ import { generateRoadmap, normalizeApiRoadmap, saveRoadmap, type SavedRoadmap } 
 
 type Message = { role: "user" | "assistant"; content: string };
 
-<<<<<<< HEAD
 export default function ChatPage() {
   const [input, setInput] = useState("");
-=======
-const starter = "I want to open a tea shop in Hyderabad";
-
-export default function ChatPage() {
-  const [input, setInput] = useState(starter);
->>>>>>> origin/main
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: "Namaskaram. Tell me your goal in simple words. I will create a step-by-step government service roadmap." }
   ]);
   const [loading, setLoading] = useState(false);
   const [roadmap, setRoadmap] = useState<SavedRoadmap | null>(null);
-<<<<<<< HEAD
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
-=======
->>>>>>> origin/main
 
   async function submitMessage() {
     if (!input.trim() || loading) return;
@@ -87,10 +73,7 @@ export default function ChatPage() {
               </div>
             ))}
             {loading && <p className="text-sm font-semibold text-slate-500">Saarthi is generating a grounded roadmap...</p>}
-<<<<<<< HEAD
             <div ref={bottomRef} />
-=======
->>>>>>> origin/main
           </div>
           <div className="border-t border-slate-200 p-4">
             <div className="flex gap-3">
@@ -101,11 +84,7 @@ export default function ChatPage() {
                 className="flex-1 rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-saffron"
                 placeholder="Type your goal..."
               />
-<<<<<<< HEAD
               <Button type="button" variant="outline" className="px-4" aria-label="Voice input" onClick={() => alert("Voice input coming soon!")}><Mic size={19} /></Button>
-=======
-              <Button type="button" variant="outline" className="px-4" aria-label="Voice input"><Mic size={19} /></Button>
->>>>>>> origin/main
               <Button type="button" onClick={submitMessage} className="gap-2"><Send size={18} /> Send</Button>
             </div>
           </div>
@@ -128,11 +107,7 @@ export default function ChatPage() {
           {roadmap && (
             <div className="mt-5 grid gap-3">
               <Link href="/workflow" className="rounded-2xl bg-navy px-5 py-3 text-center text-sm font-bold text-white">View Roadmap</Link>
-<<<<<<< HEAD
               <Link href="/workflow" className="rounded-2xl border border-slate-200 px-5 py-3 text-center text-sm font-bold text-navy">View Workflow</Link>
-=======
-              <Link href="/documents" className="rounded-2xl border border-slate-200 px-5 py-3 text-center text-sm font-bold text-navy">Upload Docs</Link>
->>>>>>> origin/main
             </div>
           )}
         </Card>
