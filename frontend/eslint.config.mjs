@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-import nextConfigFromPkg from 'eslint-config-next';
-
-const nextConfig = [
-  ...nextConfigFromPkg,
-  {
-    rules: {
-      // Add any custom rules here
-    },
-  },
-];
-
-export default nextConfig;
-=======
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
@@ -30,4 +16,3 @@ const eslintConfig = defineConfig([
 ]);
 
 export default eslintConfig;
->>>>>>> origin/main

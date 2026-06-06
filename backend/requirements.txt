@@ -13,9 +13,6 @@ fastapi==0.136.3
 fsspec==2026.4.0
 google-generativeai==0.8.5
 grpcio==1.80.0
-<<<<<<< HEAD
-google-generativeai==0.8.5
-=======
 h11==0.16.0
 h2==4.3.0
 hpack==4.1.0
@@ -44,10 +41,6 @@ openai==2.38.0
 orjson==3.11.9
 ormsgpack==1.12.2
 packaging==26.2
-<<<<<<< HEAD
-Pillow==12.0.0
-=======
-<<<<<<< HEAD
 Pillow==12.0.0
 portalocker==3.2.0
 postgrest==2.30.1
@@ -55,18 +48,6 @@ propcache==0.5.2
 protobuf==5.29.5
 pycparser==3.0
 psycopg2-binary==2.9.11
-=======
->>>>>>> origin/main
-portalocker==3.2.0
-postgrest==2.30.1
-propcache==0.5.2
-protobuf==5.29.5
-pycparser==3.0
-<<<<<<< HEAD
-psycopg2-binary==2.9.11
-=======
->>>>>>> origin/main
->>>>>>> origin/main
 pydantic==2.13.4
 pydantic-settings==2.14.1
 pydantic_core==2.46.4
@@ -75,21 +56,10 @@ pyiceberg==0.11.1
 PyJWT==2.13.0
 pyparsing==3.3.2
 pyroaring==1.1.0
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 pytesseract==0.3.13
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 python-multipart==0.0.20
-<<<<<<< HEAD
-=======
-=======
-python-dateutil==2.9.0.post0
-python-dotenv==1.2.2
->>>>>>> origin/main
->>>>>>> origin/main
 PyYAML==6.0.3
 qdrant-client==1.18.0
 realtime==2.30.1
@@ -99,14 +69,7 @@ requests-toolbelt==1.0.0
 rich==14.3.4
 six==1.17.0
 sniffio==1.3.1
-<<<<<<< HEAD
 SQLAlchemy==2.0.45
-=======
-<<<<<<< HEAD
-SQLAlchemy==2.0.45
-=======
->>>>>>> origin/main
->>>>>>> origin/main
 starlette==1.2.0
 storage3==2.30.1
 StrEnum==0.4.15
