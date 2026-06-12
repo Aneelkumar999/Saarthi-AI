@@ -3,14 +3,17 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Send, ArrowRight, Shield, Mail } from "lucide-react";
+import { Loader2, Send, ArrowRight, Shield, Mail, User, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { sendOtp, loginOtp } from "@/lib/api";
 import { saveAuth } from "@/lib/auth";
 
+type LoginMode = "citizen" | "admin";
+
 export default function LoginPage() {
   const router = useRouter();
+  const [mode, setMode] = useState<LoginMode>("citizen");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -33,6 +36,12 @@ export default function LoginPage() {
     setCountdown(0);
     setMessage("");
     setError("");
+  }
+
+  function switchMode(newMode: LoginMode) {
+    setMode(newMode);
+    resetState();
+    setEmail("");
   }
 
   async function handleSendOtp() {
@@ -66,9 +75,24 @@ export default function LoginPage() {
     setLoading("verify");
     try {
       const response = await loginOtp(email, otp);
+      const user = response.user;
+      const userRole = (user as Record<string, unknown>).role;
+
+      if (mode === "admin" && userRole !== "admin") {
+        setError("This email is not registered as an admin. Please use a valid admin account.");
+        setLoading(null);
+        return;
+      }
+
       saveAuth(response.access_token, response.user, response.refresh_token);
-      setMessage("Login successful. Redirecting...");
-      setTimeout(() => router.push("/dashboard"), 500);
+
+      if (mode === "admin") {
+        setMessage("Admin login successful. Redirecting to admin panel...");
+        setTimeout(() => router.push("/admin"), 500);
+      } else {
+        setMessage("Login successful. Redirecting...");
+        setTimeout(() => router.push("/dashboard"), 500);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid OTP");
     } finally {
@@ -92,6 +116,31 @@ export default function LoginPage() {
           <p className="mt-1 text-sm text-slate-500">Sign in with your email OTP</p>
         </div>
 
+        <div className="mb-6 flex rounded-xl bg-slate-100 p-1">
+          <button
+            onClick={() => switchMode("citizen")}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-bold transition ${
+              mode === "citizen"
+                ? "bg-white text-navy shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <User size={16} />
+            Citizen Login
+          </button>
+          <button
+            onClick={() => switchMode("admin")}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-bold transition ${
+              mode === "admin"
+                ? "bg-saffron text-white shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <ShieldCheck size={16} />
+            Admin Login
+          </button>
+        </div>
+
         <div className="flex items-center gap-2 mb-2">
           <Mail size={16} className="text-slate-500" />
           <label className="text-sm font-bold text-slate-700" htmlFor="email">Email Address</label>
@@ -103,16 +152,23 @@ export default function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !otpSent && handleSendOtp()}
           className="w-full rounded-xl border border-slate-200 px-4 py-3.5 text-navy outline-none focus:border-saffron focus:ring-2 focus:ring-saffron/20 transition"
-          placeholder="you@example.com"
+          placeholder={mode === "admin" ? "admin@example.com" : "you@example.com"}
           disabled={loading !== null || otpSent}
           autoComplete="email"
         />
+
+        {mode === "admin" && (
+          <p className="mt-2 flex items-center gap-1.5 text-xs text-saffron font-semibold">
+            <ShieldCheck size={12} />
+            Admin access requires an authorized admin account
+          </p>
+        )}
 
         {!otpSent ? (
           <Button
             onClick={handleSendOtp}
             disabled={loading !== null || !email.trim() || !email.includes("@")}
-            className="mt-5 w-full gap-2 py-3.5"
+            className={`mt-5 w-full gap-2 py-3.5 ${mode === "admin" ? "bg-saffron hover:bg-saffron/90" : ""}`}
           >
             {loading === "send" ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
             Send OTP
@@ -143,10 +199,10 @@ export default function LoginPage() {
             <Button
               onClick={handleVerifyOtp}
               disabled={loading !== null || otp.length !== 6}
-              className="mt-5 w-full gap-2 py-3.5"
+              className={`mt-5 w-full gap-2 py-3.5 ${mode === "admin" ? "bg-saffron hover:bg-saffron/90" : ""}`}
             >
               {loading === "verify" ? <Loader2 className="animate-spin" size={18} /> : <ArrowRight size={18} />}
-              Verify & Login
+              {mode === "admin" ? "Verify & Access Admin" : "Verify & Login"}
             </Button>
 
             <div className="mt-4 flex flex-col items-center gap-2">
@@ -177,12 +233,14 @@ export default function LoginPage() {
           </div>
         )}
 
-        <div className="mt-6 flex flex-col items-center gap-2 text-sm border-t border-slate-100 pt-5">
-          <p className="text-slate-500">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="font-bold text-navy hover:underline">Sign up</Link>
-          </p>
-        </div>
+        {mode === "citizen" && (
+          <div className="mt-6 flex flex-col items-center gap-2 text-sm border-t border-slate-100 pt-5">
+            <p className="text-slate-500">
+              Don&apos;t have an account?{" "}
+              <Link href="/signup" className="font-bold text-navy hover:underline">Sign up</Link>
+            </p>
+          </div>
+        )}
 
         <p className="mt-4 text-center text-xs leading-5 text-slate-400">
           By continuing, you agree to Saarthi AI&apos;s Terms of Service and Privacy Policy.

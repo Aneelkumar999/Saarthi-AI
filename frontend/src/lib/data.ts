@@ -9,8 +9,9 @@ export const navItems = [
   { href: "/schemes", label: "Schemes" },
   { href: "/portals", label: "Portals" },
   { href: "/profile", label: "Profile" },
-  { href: "/admin", label: "Admin" }
 ];
+
+export const adminNavItem = { href: "/admin", label: "Admin" };
 
 export const features = [
   { icon: Landmark, title: "Goal-Based Discovery", text: "Tell Saarthi your goal. It maps services, departments, dependencies, documents, and timelines." },

@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LogOut, Menu, X, Sparkles, Sun, Moon, ChevronDown } from "lucide-react";
-import { navItems } from "@/lib/data";
+import { navItems, adminNavItem } from "@/lib/data";
 import { cn } from "@/lib/utils";
-import { getStoredUser, getToken, logout } from "@/lib/auth";
+import { getStoredUser, getToken, logout, isAdmin } from "@/lib/auth";
 import { useIsClient } from "@/lib/use-is-client";
 import { useTheme } from "@/providers/theme-provider";
 import { useTranslation } from "@/providers/language-provider";
@@ -39,7 +39,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const userPhone = getStoredUser()?.phone ?? null;
+  const user = getStoredUser();
+  const userName = user?.name ?? user?.email ?? null;
 
   function handleLogout() {
     logout();
@@ -66,7 +67,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
 
           <nav className="hidden items-center gap-1 lg:flex">
-            {navItems.map((item) => (
+            {[...navItems, ...(isAdmin() ? [adminNavItem] : [])].map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -121,9 +122,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
             </button>
 
-            {userPhone && (
-              <span className="hidden rounded-full bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 dark:bg-dark-border dark:text-dark-muted sm:inline-flex">
-                {userPhone}
+            {userName && (
+              <span className="hidden rounded-full bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 dark:bg-dark-border dark:text-dark-muted sm:inline-flex items-center gap-1.5">
+                {isAdmin() && <span className="h-1.5 w-1.5 rounded-full bg-saffron" />}
+                {userName}
               </span>
             )}
             <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 dark:border-dark-border dark:text-dark-muted dark:hover:bg-dark-border">
@@ -171,7 +173,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
             </div>
             <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
-              {navItems.map((item) => (
+              {[...navItems, ...(isAdmin() ? [adminNavItem] : [])].map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
