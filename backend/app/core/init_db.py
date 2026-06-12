@@ -491,6 +491,10 @@ def init_db():
         ('+919000000005', 'Venkatesh Naidu', {'age': 45, 'gender': 'male', 'occupation': 'businessman'}),
     ]
 
+    admin_users = [
+        ('anilkumarvalaboju@gmail.com', 'Anil Kumar Admin'),
+    ]
+
     users = {}
     for phone, name, demo in demo_users:
         existing = db.query(models.User).filter(models.User.phone == phone).first()
@@ -501,6 +505,16 @@ def init_db():
             users[phone] = user
         else:
             users[phone] = existing
+
+    for email, name in admin_users:
+        existing = db.query(models.User).filter(models.User.email == email).first()
+        if not existing:
+            user = models.User(email=email, name=name, role="admin", is_verified=True)
+            db.add(user)
+            db.flush()
+        elif existing.role != "admin":
+            existing.role = "admin"
+            existing.name = name
 
     db.commit()
 

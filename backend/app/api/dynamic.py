@@ -457,8 +457,11 @@ async def admin_users(db: Session = Depends(get_db)):
         journey_count = db.query(models.UserJourney).filter(models.UserJourney.user_id == u.id).count()
         result.append({
             "id": u.id,
+            "name": u.name or (profile.full_name if profile else "Unknown"),
+            "email": u.email,
             "phone": u.phone,
-            "full_name": u.full_name or (profile.full_name if profile else "Unknown"),
+            "role": getattr(u, "role", "citizen"),
+            "is_verified": getattr(u, "is_verified", False),
             "location": profile.location if profile else "",
             "citizen_type": profile.citizen_type if profile else "",
             "documents": doc_count,
@@ -476,7 +479,7 @@ async def admin_documents(db: Session = Depends(get_db)):
         result.append({
             "id": d.id,
             "user_id": d.user_id,
-            "user_name": user.full_name if user else "Unknown",
+            "user_name": user.name if user else "Unknown",
             "doc_type": d.doc_type,
             "filename": d.filename or "",
             "status": d.status,

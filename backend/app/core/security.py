@@ -86,6 +86,7 @@ def create_access_token(user: models.User) -> str:
         "phone": user.phone,
         "email": user.email,
         "name": user.name,
+        "role": getattr(user, "role", "citizen"),
         "type": "access",
         "exp": utc_now() + timedelta(minutes=expires_minutes),
         "iat": utc_now(),
@@ -134,4 +135,14 @@ def get_current_user(
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    return user
+
+
+def get_current_admin(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: Session = Depends(get_db)
+) -> models.User:
+    user = get_current_user(credentials, db)
+    if getattr(user, "role", "citizen") != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return user

@@ -14,6 +14,7 @@ export type AuthUser = {
   name: string;
   email?: string | null;
   phone?: string | null;
+  role: string;
   is_verified: boolean;
   avatar_url?: string | null;
   created_at?: string | null;
@@ -283,5 +284,34 @@ export async function fetchDocFromGov(token: string, docType: string, portalId: 
     body: JSON.stringify({ portal_id: portalId })
   });
   if (!response.ok) throw new Error(await parseError(response, "Failed to fetch document"));
+  return response.json();
+}
+
+export async function fetchAdminUsers(token: string, search: string = "") {
+  const url = search
+    ? `${API_BASE_URL}/auth/admin/users?search=${encodeURIComponent(search)}`
+    : `${API_BASE_URL}/auth/admin/users`;
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!response.ok) throw new Error(await parseError(response, "Failed to fetch users"));
+  return response.json();
+}
+
+export async function promoteUser(token: string, email: string) {
+  const response = await fetch(`${API_BASE_URL}/auth/admin/promote`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ email })
+  });
+  if (!response.ok) throw new Error(await parseError(response, "Failed to promote user"));
+  return response.json();
+}
+
+export async function demoteUser(token: string, email: string) {
+  const response = await fetch(`${API_BASE_URL}/auth/admin/demote`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ email })
+  });
+  if (!response.ok) throw new Error(await parseError(response, "Failed to demote user"));
   return response.json();
 }

@@ -15,6 +15,7 @@ class User(Base):
     name = Column(String, nullable=False, default="")
     email = Column(String, unique=True, index=True, nullable=True)
     phone = Column(String, unique=True, index=True, nullable=True)
+    role = Column(String, default="citizen", nullable=False)
     is_verified = Column(Boolean, default=False)
     avatar_url = Column(String, nullable=True)
     demographics = Column(JSON)

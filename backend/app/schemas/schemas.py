@@ -58,6 +58,7 @@ class AuthUserResponse(BaseModel):
     name: str
     email: Optional[str] = None
     phone: Optional[str] = None
+    role: str = "citizen"
     is_verified: bool = False
     avatar_url: Optional[str] = None
     created_at: Optional[str] = None

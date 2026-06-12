@@ -38,8 +38,7 @@ export function isAuthenticated(): boolean {
 export function isAdmin(): boolean {
   const user = getStoredUser();
   if (!user) return false;
-  const phone = (user.phone || "").replace(/\D/g, "").slice(-10);
-  return phone === "8919858239";
+  return (user as Record<string, unknown>).role === "admin";
 }
 
 export function logout() {

@@ -13,7 +13,7 @@ from app.services.email_service import send_otp_email
 from app.services.sms_service import send_otp_sms
 from app.core.security import (
     create_access_token, create_refresh_token,
-    detect_channel, generate_otp, get_current_user,
+    detect_channel, generate_otp, get_current_user, get_current_admin,
     normalize_identifier, normalize_phone, validate_email,
     utc_now, _to_aware, mask_destination,
 )
@@ -157,6 +157,7 @@ def _create_tokens(user: models.User, db: Session) -> dict:
             name=user.name,
             email=user.email,
             phone=user.phone,
+            role=getattr(user, "role", "citizen"),
             is_verified=user.is_verified,
             avatar_url=user.avatar_url,
             created_at=user.created_at.isoformat() if user.created_at else None,
@@ -375,6 +376,7 @@ def me(current_user: models.User = Depends(get_current_user)):
         name=current_user.name,
         email=current_user.email,
         phone=current_user.phone,
+        role=getattr(current_user, "role", "citizen"),
         is_verified=current_user.is_verified,
         avatar_url=current_user.avatar_url,
         created_at=current_user.created_at.isoformat() if current_user.created_at else None,
@@ -504,3 +506,83 @@ def firebase_login(request: FirebaseLoginRequest, http_request: Request, db: Ses
     _create_session(db, user, _get_client_ip(http_request), _get_user_agent(http_request), "phone", phone or "")
 
     return TokenResponse(**_create_tokens(user, db))
+
+
+# ── Admin Management ─────────────────────────────────────────────────
+
+class PromoteUserRequest(BaseModel):
+    email: str
+
+class RoleUpdateResponse(BaseModel):
+    success: bool = True
+    message: str
+    user_id: str
+    role: str
+
+
+@router.get("/admin/users")
+def list_users(
+    search: str = "",
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.User)
+    if search:
+        like = f"%{search}%"
+        query = query.filter(
+            (models.User.email.ilike(like)) |
+            (models.User.name.ilike(like)) |
+            (models.User.phone.ilike(like))
+        )
+    users = query.order_by(models.User.created_at.desc()).limit(100).all()
+    return [
+        {
+            "id": u.id,
+            "name": u.name,
+            "email": u.email,
+            "phone": u.phone,
+            "role": getattr(u, "role", "citizen"),
+            "is_verified": u.is_verified,
+            "created_at": u.created_at.isoformat() if u.created_at else None,
+            "last_login_at": u.last_login_at.isoformat() if u.last_login_at else None,
+        }
+        for u in users
+    ]
+
+
+@router.post("/admin/promote", response_model=RoleUpdateResponse)
+def promote_user(
+    request: PromoteUserRequest,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    user = db.query(models.User).filter(models.User.email == request.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found with this email")
+    user.role = "admin"
+    db.commit()
+    return RoleUpdateResponse(
+        message=f"{user.name or user.email} promoted to admin",
+        user_id=user.id,
+        role="admin",
+    )
+
+
+@router.post("/admin/demote", response_model=RoleUpdateResponse)
+def demote_user(
+    request: PromoteUserRequest,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    user = db.query(models.User).filter(models.User.email == request.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found with this email")
+    if user.id == admin.id:
+        raise HTTPException(status_code=400, detail="Cannot demote yourself")
+    user.role = "citizen"
+    db.commit()
+    return RoleUpdateResponse(
+        message=f"{user.name or user.email} demoted to citizen",
+        user_id=user.id,
+        role="citizen",
+    )

@@ -7,6 +7,7 @@ import { Card, StatCard } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Database, FileText, Shield, Users, Search, Lock } from "lucide-react";
 import { isAdmin, isAuthenticated } from "@/lib/auth";
+import { fetchAdminUsers, promoteUser, demoteUser } from "@/lib/api";
 import { useIsClient } from "@/lib/use-is-client";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
@@ -16,7 +17,7 @@ type Tab = "services" | "intents" | "schemes" | "users" | "audit";
 interface Service { id: number; name: string; department: string; fee: number; sla_days: number; description: string; }
 interface Intent { id: number; name: string; description: string; trigger_keywords: string[]; services: { id: number; name: string; step_order: number }[]; has_roadmap_template: boolean; }
 interface Scheme { id: number; name: string; description: string; category: string; region: string; eligibility_rules: Record<string, unknown>; }
-interface User { id: number; phone: string; full_name: string; location: string; citizen_type: string; documents: number; journeys: number; created_at: string; }
+interface User { id: string; name?: string; email?: string; phone?: string; role?: string; is_verified?: boolean; location?: string; citizen_type?: string; documents?: number; journeys?: number; created_at?: string; }
 interface Stats { total_services: number; total_intents: number; total_schemes: number; total_users: number; total_journeys: number; total_documents: number; }
 interface AuditEntry { action: string; detail: Record<string, unknown>; timestamp: string; }
 
@@ -48,19 +49,20 @@ export default function AdminPage() {
     try {
       setLoading(true);
       setError(null);
-      const [statsRes, servicesRes, intentsRes, schemesRes, usersRes, auditRes] = await Promise.allSettled([
+      const token = localStorage.getItem("saarthi_access_token");
+      const [statsRes, servicesRes, intentsRes, schemesRes, auditRes] = await Promise.allSettled([
         fetch(`${API}/admin/stats`),
         fetch(`${API}/admin/services`),
         fetch(`${API}/admin/intents`),
         fetch(`${API}/admin/schemes`),
-        fetch(`${API}/admin/users`),
         fetch(`${API}/admin/audit`),
       ]);
+      const usersResult = token ? await fetchAdminUsers(token).catch(() => []) : [];
       if (statsRes.status === "fulfilled" && statsRes.value.ok) setStats(await statsRes.value.json());
       if (servicesRes.status === "fulfilled" && servicesRes.value.ok) setServices(await servicesRes.value.json());
       if (intentsRes.status === "fulfilled" && intentsRes.value.ok) setIntents(await intentsRes.value.json());
       if (schemesRes.status === "fulfilled" && schemesRes.value.ok) setSchemes(await schemesRes.value.json());
-      if (usersRes.status === "fulfilled" && usersRes.value.ok) setUsers(await usersRes.value.json());
+      setUsers(Array.isArray(usersResult) ? usersResult : []);
       if (auditRes.status === "fulfilled" && auditRes.value.ok) setAudit(await auditRes.value.json());
     } catch {
       if (retryCountRef.current < 3) {
@@ -329,19 +331,42 @@ export default function AdminPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead><tr className="border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
-                <th className="pb-3 pr-4">Name</th><th className="pb-3 pr-4">Phone</th><th className="pb-3 pr-4">Location</th><th className="pb-3 pr-4">Type</th><th className="pb-3 pr-4 text-right">Docs</th><th className="pb-3 text-right">Journeys</th>
+                <th className="pb-3 pr-4">Name</th><th className="pb-3 pr-4">Email</th><th className="pb-3 pr-4">Phone</th><th className="pb-3 pr-4">Role</th><th className="pb-3 pr-4">Verified</th><th className="pb-3 text-right">Actions</th>
               </tr></thead>
               <tbody>
-                {filtered(users).map((u) => (
-                  <tr key={u.id} className="border-b border-slate-100 last:border-0">
-                    <td className="py-3 pr-4 font-semibold text-navy">{u.full_name}</td>
-                    <td className="py-3 pr-4 text-slate-600">{u.phone}</td>
-                    <td className="py-3 pr-4 text-slate-600">{u.location}</td>
-                    <td className="py-3 pr-4"><span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600">{u.citizen_type}</span></td>
-                    <td className="py-3 pr-4 text-right">{u.documents}</td>
-                    <td className="py-3 text-right">{u.journeys}</td>
+                {filtered(users as unknown as { name?: string; email?: string; phone?: string; role?: string; is_verified?: boolean }[]).map((u: { id?: string; name?: string; email?: string; phone?: string; role?: string; is_verified?: boolean }) => (
+                  <tr key={u.email} className="border-b border-slate-100 last:border-0">
+                    <td className="py-3 pr-4 font-semibold text-navy">{u.name || "—"}</td>
+                    <td className="py-3 pr-4 text-slate-600">{u.email || "—"}</td>
+                    <td className="py-3 pr-4 text-slate-600">{u.phone || "—"}</td>
+                    <td className="py-3 pr-4">
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${u.role === "admin" ? "bg-saffron/10 text-saffron" : "bg-slate-100 text-slate-600"}`}>
+                        {u.role === "admin" ? "Admin" : "Citizen"}
+                      </span>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${u.is_verified ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                        {u.is_verified ? "Yes" : "No"}
+                      </span>
+                    </td>
+                    <td className="py-3 text-right">
+                      {u.email && (
+                        u.role === "admin" ? (
+                          <button onClick={async () => { if (confirm(`Demote ${u.email}?`)) { try { const token = localStorage.getItem("saarthi_access_token"); if (token) { await demoteUser(token, u.email!); fetchData(); } } catch {} } }}
+                            className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100 transition">
+                            Demote
+                          </button>
+                        ) : (
+                          <button onClick={async () => { if (confirm(`Promote ${u.email} to admin?`)) { try { const token = localStorage.getItem("saarthi_access_token"); if (token) { await promoteUser(token, u.email!); fetchData(); } } catch {} } }}
+                            className="rounded-lg bg-green-50 px-3 py-1.5 text-xs font-bold text-green-700 hover:bg-green-100 transition">
+                            Promote
+                          </button>
+                        )
+                      )}
+                    </td>
                   </tr>
                 ))}
+                {filtered(users as unknown as { name?: string }[]).length === 0 && !loading && <tr><td colSpan={6} className="py-8 text-center text-slate-400">No users found</td></tr>}
               </tbody>
             </table>
           </div>
