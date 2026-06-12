@@ -5,14 +5,14 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Card, StatCard } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Database, FileText, Shield, Users, Search, Lock, ClipboardList, Map, FolderOpen, Award, Globe } from "lucide-react";
+import { Plus, Trash2, Database, FileText, Shield, Users, Search, Lock, ClipboardList, Map, FolderOpen, Award, Globe, ClipboardCheck } from "lucide-react";
 import { isAdmin, isAuthenticated } from "@/lib/auth";
-import { fetchAdminUsers, promoteUser, demoteUser, fetchGovPortals, type GovPortal } from "@/lib/api";
+import { fetchAdminUsers, promoteUser, demoteUser, fetchGovPortals, fetchAdminServiceRequests, updateServiceRequest, type GovPortal } from "@/lib/api";
 import { useIsClient } from "@/lib/use-is-client";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
 
-type Tab = "services" | "intents" | "schemes" | "users" | "audit" | "forms" | "roadmap" | "documents" | "schemes_applied" | "portals";
+type Tab = "services" | "intents" | "schemes" | "users" | "audit" | "forms" | "roadmap" | "documents" | "schemes_applied" | "portals" | "service_requests";
 
 interface Service { id: number; name: string; department: string; fee: number; sla_days: number; description: string; }
 interface Intent { id: number; name: string; description: string; trigger_keywords: string[]; services: { id: number; name: string; step_order: number }[]; has_roadmap_template: boolean; }
@@ -23,6 +23,7 @@ interface AuditEntry { action: string; detail: Record<string, unknown>; timestam
 interface Journey { id: number; user_name: string; user_email: string; intent_name: string; status: string; steps: { id: number; service_name: string; service_dept: string; status: string }[]; created_at: string; }
 interface UserScheme { id: number; user_name: string; user_email: string; scheme_name: string; scheme_description: string; status: string; applied_at: string | null; created_at: string; }
 interface DocEntry { id: number; user_id: string; user_name: string; doc_type: string; filename: string; status: string; confidence: string; created_at: string; }
+interface ServiceRequestEntry { id: number; user_name: string; user_email: string; service_name: string; service_type: string; description: string; form_data: Record<string, unknown>; documents: string[]; status: string; admin_notes: string | null; created_at: string; processed_at: string | null; }
 
 export default function AdminPage() {
   const isClient = useIsClient();
@@ -37,6 +38,7 @@ export default function AdminPage() {
   const [userSchemes, setUserSchemes] = useState<UserScheme[]>([]);
   const [documents, setDocuments] = useState<DocEntry[]>([]);
   const [portals, setPortals] = useState<GovPortal[]>([]);
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequestEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -57,7 +59,7 @@ export default function AdminPage() {
       setLoading(true);
       setError(null);
       const token = localStorage.getItem("saarthi_access_token");
-      const [statsRes, servicesRes, intentsRes, schemesRes, auditRes, journeysRes, userSchemesRes, documentsRes] = await Promise.allSettled([
+      const [statsRes, servicesRes, intentsRes, schemesRes, auditRes, journeysRes, userSchemesRes, documentsRes, serviceRequestsRes] = await Promise.allSettled([
         fetch(`${API}/admin/stats`),
         fetch(`${API}/admin/services`),
         fetch(`${API}/admin/intents`),
@@ -66,6 +68,7 @@ export default function AdminPage() {
         fetch(`${API}/admin/journeys`),
         fetch(`${API}/admin/user-schemes`),
         fetch(`${API}/admin/documents`),
+        token ? fetchAdminServiceRequests(token) : Promise.reject("no token"),
       ]);
       const usersResult = token ? await fetchAdminUsers(token).catch(() => []) : [];
       const portalsResult = await fetchGovPortals().catch(() => []);
@@ -77,6 +80,7 @@ export default function AdminPage() {
       if (journeysRes.status === "fulfilled" && journeysRes.value.ok) setJourneys(await journeysRes.value.json());
       if (userSchemesRes.status === "fulfilled" && userSchemesRes.value.ok) setUserSchemes(await userSchemesRes.value.json());
       if (documentsRes.status === "fulfilled" && documentsRes.value.ok) setDocuments(await documentsRes.value.json());
+      if (serviceRequestsRes.status === "fulfilled") setServiceRequests(Array.isArray(serviceRequestsRes.value) ? serviceRequestsRes.value : []);
       setUsers(Array.isArray(usersResult) ? usersResult : []);
       setPortals(Array.isArray(portalsResult) ? portalsResult : []);
     } catch {
@@ -153,6 +157,7 @@ export default function AdminPage() {
     { key: "portals", label: "Portals", icon: <Globe size={16} />, count: portals.length },
     { key: "users", label: "Users", icon: <Users size={16} />, count: users.length },
     { key: "audit", label: "Audit", icon: <Shield size={16} />, count: audit.length },
+    { key: "service_requests", label: "Service Requests", icon: <ClipboardCheck size={16} />, count: serviceRequests.length },
   ];
 
   function filtered<T extends { name?: string; full_name?: string; doc_type?: string; user_name?: string; intent_name?: string; scheme_name?: string }>(list: T[]): T[] {
@@ -569,6 +574,131 @@ export default function AdminPage() {
                 <div className="rounded-2xl bg-slate-50 p-4"><p><strong>Security:</strong> No failed RBAC events in last 24 hours.</p></div>
               </>
             )}
+          </div>
+        </Card>
+      )}
+
+      {/* Service Requests Tab */}
+      {tab === "service_requests" && (
+        <Card>
+          <div className="space-y-4">
+            {serviceRequests.length === 0 && !loading && (
+              <div className="text-center py-12">
+                <ClipboardCheck size={40} className="mx-auto text-slate-300 mb-3" />
+                <p className="text-slate-500">No service requests yet.</p>
+                <p className="text-xs text-slate-400 mt-1">Citizen service requests will appear here.</p>
+              </div>
+            )}
+            {serviceRequests.map((req) => (
+              <div key={req.id} className="rounded-2xl border border-slate-200 p-5">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-black text-navy">{req.service_name}</h3>
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                        req.status === "approved" ? "bg-emerald-50 text-emerald-700" :
+                        req.status === "rejected" ? "bg-red-50 text-red-700" :
+                        req.status === "processing" ? "bg-blue-50 text-blue-700" :
+                        "bg-amber-50 text-amber-700"
+                      }`}>
+                        {req.status}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-slate-500">
+                      by <span className="font-semibold text-navy">{req.user_name}</span>
+                      {req.user_email && <span className="text-slate-400"> ({req.user_email})</span>}
+                    </p>
+                    {req.description && (
+                      <p className="mt-2 text-sm text-slate-600 bg-slate-50 rounded-lg p-3">{req.description}</p>
+                    )}
+                    {Object.keys(req.form_data).length > 0 && (
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        {Object.entries(req.form_data).map(([key, val]) => (
+                          <div key={key} className="text-xs">
+                            <span className="text-slate-400">{key}:</span>{" "}
+                            <span className="font-semibold text-navy">{String(val)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {req.documents.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {req.documents.map((doc, i) => (
+                          <span key={i} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">{doc}</span>
+                        ))}
+                      </div>
+                    )}
+                    <p className="mt-2 text-xs text-slate-400">
+                      Submitted {new Date(req.created_at).toLocaleString()}
+                      {req.processed_at && ` · Processed ${new Date(req.processed_at).toLocaleString()}`}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-2 border-t border-slate-100 pt-4">
+                  {req.status === "pending" && (
+                    <>
+                      <Button
+                        onClick={async () => {
+                          const token = localStorage.getItem("saarthi_access_token");
+                          if (token) {
+                            await updateServiceRequest(token, req.id, { status: "processing", admin_notes: "Under review" });
+                            fetchData();
+                          }
+                        }}
+                        className="gap-1 text-xs"
+                      >
+                        Start Processing
+                      </Button>
+                    </>
+                  )}
+                  {req.status === "processing" && (
+                    <>
+                      <Button
+                        onClick={async () => {
+                          const notes = prompt("Admin notes (approval reason):");
+                          const token = localStorage.getItem("saarthi_access_token");
+                          if (token) {
+                            await updateServiceRequest(token, req.id, { status: "approved", admin_notes: notes || "Approved by admin" });
+                            fetchData();
+                          }
+                        }}
+                        className="gap-1 text-xs bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        onClick={async () => {
+                          const notes = prompt("Rejection reason:");
+                          const token = localStorage.getItem("saarthi_access_token");
+                          if (token) {
+                            await updateServiceRequest(token, req.id, { status: "rejected", admin_notes: notes || "Rejected" });
+                            fetchData();
+                          }
+                        }}
+                        variant="secondary"
+                        className="gap-1 text-xs text-red-600 border-red-200 hover:bg-red-50"
+                      >
+                        Reject
+                      </Button>
+                    </>
+                  )}
+                  <Button
+                    onClick={async () => {
+                      const notes = prompt("Admin notes:", req.admin_notes || "");
+                      const token = localStorage.getItem("saarthi_access_token");
+                      if (token && notes !== null) {
+                        await updateServiceRequest(token, req.id, { admin_notes: notes });
+                        fetchData();
+                      }
+                    }}
+                    variant="secondary"
+                    className="gap-1 text-xs"
+                  >
+                    Add Notes
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         </Card>
       )}

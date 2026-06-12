@@ -191,6 +191,26 @@ class AuditLog(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
 
+class ServiceRequest(Base):
+    __tablename__ = "service_requests"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    service_name = Column(String, nullable=False)
+    service_type = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    form_data = Column(JSON, default={})
+    documents = Column(JSON, default=[])
+    status = Column(String, default="pending")
+    admin_notes = Column(Text, nullable=True)
+    processed_by = Column(String, ForeignKey("users.id"), nullable=True)
+    processed_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User", foreign_keys=[user_id])
+    processor = relationship("User", foreign_keys=[processed_by])
+
+
 class WhatsAppSession(Base):
     __tablename__ = "whatsapp_sessions"
     id = Column(Integer, primary_key=True, index=True)

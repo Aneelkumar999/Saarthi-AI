@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Clock3, LockKeyhole, MapPin, Upload, Check, ExternalLink, Building2 } from "lucide-react";
+import { CheckCircle2, Clock3, LockKeyhole, MapPin, Upload, Check, ExternalLink, Building2, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { createMockDocument, saveDocument, getDocuments } from "@/lib/journey";
 import { getToken, getStoredUser } from "@/lib/auth";
 import { submitToGovPortal } from "@/lib/api";
+import Link from "next/link";
 
 const statusIcon = {
   Ready: CheckCircle2,
@@ -75,6 +76,7 @@ export function WorkflowStep({ step, onUpload }: { step: WorkflowStepData; onUpl
   const [submitting, setSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState<{ ref: string; url: string } | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [expandedDoc, setExpandedDoc] = useState<string | null>(null);
 
   async function handlePortalSubmit() {
     setSubmitting(true);
@@ -109,6 +111,7 @@ export function WorkflowStep({ step, onUpload }: { step: WorkflowStepData; onUpl
       saveDocument(document);
       onUpload?.();
       window.dispatchEvent(new CustomEvent("doc-uploaded"));
+      setExpandedDoc(null);
     };
     input.click();
   }
@@ -132,20 +135,61 @@ export function WorkflowStep({ step, onUpload }: { step: WorkflowStepData; onUpl
             {step.documents.map((doc) => {
               const docType = getDocTypeFromName(doc);
               const isUploaded = uploadedTypes.has(docType.toLowerCase());
+              const isExpanded = expandedDoc === doc;
               return (
-                <button
-                  key={doc}
-                  onClick={() => handleUpload(doc)}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                    isUploaded
-                      ? "bg-teal-50 text-telangana border border-teal-200"
-                      : "bg-slate-100 text-slate-600 border border-slate-200 hover:bg-saffron hover:text-white hover:border-saffron cursor-pointer"
-                  }`}
-                  title={isUploaded ? `${doc} - Uploaded` : `Click to upload ${doc}`}
-                >
-                  {isUploaded ? <Check size={12} /> : <Upload size={12} />}
-                  {doc}
-                </button>
+                <div key={doc} className="relative">
+                  <button
+                    onClick={() => setExpandedDoc(isExpanded ? null : doc)}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                      isUploaded
+                        ? "bg-teal-50 text-telangana border border-teal-200"
+                        : "bg-slate-100 text-slate-600 border border-slate-200 hover:bg-saffron hover:text-white hover:border-saffron cursor-pointer"
+                    }`}
+                  >
+                    {isUploaded ? <Check size={12} /> : <Upload size={12} />}
+                    {doc}
+                  </button>
+                  {isExpanded && (
+                    <div className="absolute left-0 top-full z-10 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
+                      <p className="text-xs font-bold text-navy mb-2">{doc}</p>
+                      {isUploaded ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1.5 text-xs text-telangana font-semibold">
+                            <Check size={12} /> Uploaded
+                          </div>
+                          <Link
+                            href="/documents"
+                            className="flex items-center gap-1.5 rounded-lg bg-teal-50 px-3 py-2 text-xs font-bold text-telangana hover:bg-teal-100 transition"
+                          >
+                            <FileText size={12} /> View in Documents
+                          </Link>
+                          <Link
+                            href="/forms"
+                            className="flex items-center gap-1.5 rounded-lg bg-saffron/10 px-3 py-2 text-xs font-bold text-saffron hover:bg-saffron/20 transition"
+                          >
+                            <ExternalLink size={12} /> Apply with this document
+                          </Link>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <p className="text-xs text-slate-500">This document is not uploaded yet.</p>
+                          <button
+                            onClick={() => handleUpload(doc)}
+                            className="flex w-full items-center gap-1.5 rounded-lg bg-saffron px-3 py-2 text-xs font-bold text-white hover:bg-saffron/90 transition"
+                          >
+                            <Upload size={12} /> Upload now
+                          </button>
+                          <Link
+                            href="/documents"
+                            className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                          >
+                            <ExternalLink size={12} /> Go to Documents page
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>

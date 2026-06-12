@@ -315,3 +315,53 @@ export async function demoteUser(token: string, email: string) {
   if (!response.ok) throw new Error(await parseError(response, "Failed to demote user"));
   return response.json();
 }
+
+export async function fetchMyDashboard(token: string) {
+  const response = await fetch(`${API_BASE_URL}/dashboard/my-stats`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error("Failed to fetch dashboard");
+  return response.json();
+}
+
+export async function createServiceRequest(token: string, data: {
+  service_name: string;
+  service_type: string;
+  description?: string;
+  form_data?: Record<string, unknown>;
+  documents?: string[];
+}) {
+  const response = await fetch(`${API_BASE_URL}/service-requests`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error(await parseError(response, "Failed to submit service request"));
+  return response.json();
+}
+
+export async function fetchMyServiceRequests(token: string) {
+  const response = await fetch(`${API_BASE_URL}/service-requests/mine`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error("Failed to fetch service requests");
+  return response.json();
+}
+
+export async function fetchAdminServiceRequests(token: string) {
+  const response = await fetch(`${API_BASE_URL}/admin/service-requests`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error("Failed to fetch service requests");
+  return response.json();
+}
+
+export async function updateServiceRequest(token: string, requestId: number, data: { status?: string; admin_notes?: string }) {
+  const response = await fetch(`${API_BASE_URL}/admin/service-requests/${requestId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error(await parseError(response, "Failed to update service request"));
+  return response.json();
+}

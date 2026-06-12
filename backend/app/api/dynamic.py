@@ -7,7 +7,9 @@ from app.schemas.schemas import (
     SchemeResponse, DashboardStats, UserProfileResponse, 
     UserProfileUpdate, ServiceResponse, ServiceCreate
 )
-from app.core.security import get_current_user
+from app.core.security import get_current_user, get_current_admin
+from pydantic import BaseModel
+from typing import Optional
 from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
@@ -80,6 +82,166 @@ async def get_dashboard_stats(db: Session = Depends(get_db)):
             {"type": "scheme", "title": "PM SVANidhi recommended", "status": "eligible", "timestamp": "2026-05-29T11:00:00"},
         ]
     }
+
+# ── User-specific dashboard ────────────────────────────────────────────
+@router.get("/dashboard/my-stats")
+async def get_my_dashboard_stats(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    uid = current_user.id
+    my_journeys = db.query(models.UserJourney).filter(models.UserJourney.user_id == uid).all()
+    active_journeys = sum(1 for j in my_journeys if j.status == "active")
+    completed_journeys = sum(1 for j in my_journeys if j.status == "completed")
+    
+    my_journey_ids = [j.id for j in my_journeys]
+    my_steps = db.query(models.JourneyStep).filter(models.JourneyStep.journey_id.in_(my_journey_ids)).all() if my_journey_ids else []
+    completed_steps = sum(1 for s in my_steps if s.status == "completed")
+    total_steps = len(my_steps)
+    
+    my_docs = db.query(models.UserDocument).filter(models.UserDocument.user_id == uid).all()
+    uploaded_documents = len(my_docs)
+    
+    my_user_schemes = db.query(models.UserScheme).filter(models.UserScheme.user_id == uid).all()
+    schemes_applied = len(my_user_schemes)
+    
+    total_schemes = db.query(models.Scheme).count()
+    
+    recent_activities = []
+    for j in my_journeys[-5:]:
+        intent = db.query(models.Intent).filter(models.Intent.id == j.intent_id).first()
+        recent_activities.append({
+            "type": "journey",
+            "title": f"{intent.name if intent else 'Unknown'} journey",
+            "status": j.status,
+            "timestamp": j.created_at.isoformat() if j.created_at else ""
+        })
+    for d in my_docs[-5:]:
+        recent_activities.append({
+            "type": "document",
+            "title": f"{d.doc_type} uploaded",
+            "status": d.status,
+            "timestamp": d.created_at.isoformat() if d.created_at else ""
+        })
+    for us in my_user_schemes[-3:]:
+        scheme = db.query(models.Scheme).filter(models.Scheme.id == us.scheme_id).first()
+        recent_activities.append({
+            "type": "scheme",
+            "title": f"{scheme.name if scheme else 'Unknown'} scheme",
+            "status": us.status,
+            "timestamp": us.created_at.isoformat() if us.created_at else ""
+        })
+    recent_activities.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    
+    return {
+        "active_journeys": active_journeys,
+        "completed_journeys": completed_journeys,
+        "completed_steps": completed_steps,
+        "total_steps": total_steps,
+        "uploaded_documents": uploaded_documents,
+        "schemes_applied": schemes_applied,
+        "eligible_schemes": total_schemes,
+        "days_saved": completed_steps * 2,
+        "recent_activities": recent_activities[:8],
+    }
+
+# ── Service Requests (Citizen submit + Admin manage) ───────────────────
+class ServiceRequestCreate(BaseModel):
+    service_name: str
+    service_type: str
+    description: Optional[str] = ""
+    form_data: Optional[dict] = {}
+    documents: Optional[list] = []
+
+class ServiceRequestUpdate(BaseModel):
+    status: Optional[str] = None
+    admin_notes: Optional[str] = None
+
+@router.post("/service-requests")
+async def create_service_request(
+    body: ServiceRequestCreate,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    sr = models.ServiceRequest(
+        user_id=current_user.id,
+        service_name=body.service_name,
+        service_type=body.service_type,
+        description=body.description,
+        form_data=body.form_data,
+        documents=body.documents,
+        status="pending",
+    )
+    db.add(sr)
+    db.commit()
+    db.refresh(sr)
+    return {"id": sr.id, "message": "Service request submitted successfully", "status": sr.status}
+
+@router.get("/service-requests/mine")
+async def get_my_service_requests(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    requests = db.query(models.ServiceRequest).filter(
+        models.ServiceRequest.user_id == current_user.id
+    ).order_by(models.ServiceRequest.created_at.desc()).all()
+    return [
+        {
+            "id": r.id,
+            "service_name": r.service_name,
+            "service_type": r.service_type,
+            "description": r.description,
+            "status": r.status,
+            "admin_notes": r.admin_notes,
+            "created_at": r.created_at.isoformat() if r.created_at else "",
+            "processed_at": r.processed_at.isoformat() if r.processed_at else None,
+        }
+        for r in requests
+    ]
+
+@router.get("/admin/service-requests")
+async def admin_get_service_requests(
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    requests = db.query(models.ServiceRequest).order_by(models.ServiceRequest.created_at.desc()).all()
+    result = []
+    for r in requests:
+        user = db.query(models.User).filter(models.User.id == r.user_id).first()
+        result.append({
+            "id": r.id,
+            "user_name": user.name if user else "Unknown",
+            "user_email": user.email if user else "",
+            "service_name": r.service_name,
+            "service_type": r.service_type,
+            "description": r.description,
+            "form_data": r.form_data or {},
+            "documents": r.documents or [],
+            "status": r.status,
+            "admin_notes": r.admin_notes,
+            "created_at": r.created_at.isoformat() if r.created_at else "",
+            "processed_at": r.processed_at.isoformat() if r.processed_at else None,
+        })
+    return result
+
+@router.put("/admin/service-requests/{request_id}")
+async def admin_update_service_request(
+    request_id: int,
+    body: ServiceRequestUpdate,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    sr = db.query(models.ServiceRequest).filter(models.ServiceRequest.id == request_id).first()
+    if not sr:
+        raise HTTPException(status_code=404, detail="Service request not found")
+    if body.status:
+        sr.status = body.status
+    if body.admin_notes is not None:
+        sr.admin_notes = body.admin_notes
+    sr.processed_by = admin.id
+    sr.processed_at = func.now()
+    db.commit()
+    return {"message": "Service request updated", "status": sr.status}
 
 # GET /api/v1/services - List all services
 @router.get("/services")
