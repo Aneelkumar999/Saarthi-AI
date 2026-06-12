@@ -5,6 +5,8 @@ export type RoadmapStep = {
   status: string;
   days: string;
   documents: string[];
+  portal_id?: string | null;
+  portal_name?: string | null;
 };
 
 export type SavedRoadmap = {
@@ -467,6 +469,34 @@ export function createMockDocument(fileName: string): SavedDocument {
   };
 }
 
+const PORTAL_MAP: Record<string, { id: string; name: string }> = {
+  "birth certificate": { id: "meeseva", name: "MeeSeva" },
+  "caste certificate": { id: "meeseva", name: "MeeSeva" },
+  "income certificate": { id: "meeseva", name: "MeeSeva" },
+  "trade license": { id: "meeseva", name: "MeeSeva" },
+  "shop & establishment": { id: "meeseva", name: "MeeSeva" },
+  "marriage registration": { id: "meeseva", name: "MeeSeva" },
+  "property registration": { id: "meeseva", name: "MeeSeva" },
+  "building plan": { id: "meeseva", name: "MeeSeva" },
+  "fssai": { id: "fssai", name: "FSSAI" },
+  "udyam": { id: "udyam", name: "Udyam Registration" },
+  "msme": { id: "udyam", name: "Udyam Registration" },
+  "passport": { id: "passport_seva", name: "Passport Seva" },
+  "aadhaar": { id: "digilocker", name: "DigiLocker" },
+  "pan": { id: "income_tax", name: "Income Tax e-Filing" },
+  "voter": { id: "voter_portal", name: "National Voter Portal" },
+  "driving license": { id: "digilocker", name: "DigiLocker" },
+  "registration": { id: "meeseva", name: "MeeSeva" },
+};
+
+function findPortalForStep(title: string): { id: string; name: string } | null {
+  const lower = title.toLowerCase();
+  for (const [key, portal] of Object.entries(PORTAL_MAP)) {
+    if (lower.includes(key)) return portal;
+  }
+  return null;
+}
+
 function buildRoadmap(goal: string, data: Omit<SavedRoadmap, "id" | "goal" | "createdAt">): SavedRoadmap {
   return {
     id: crypto.randomUUID(),
@@ -477,7 +507,8 @@ function buildRoadmap(goal: string, data: Omit<SavedRoadmap, "id" | "goal" | "cr
 }
 
 function step(id: number, title: string, dept: string, status: string, days: string, documents: string[]): RoadmapStep {
-  return { id, title, dept, status, days, documents };
+  const portal = findPortalForStep(title);
+  return { id, title, dept, status, days, documents, portal_id: portal?.id ?? null, portal_name: portal?.name ?? null };
 }
 
 function inferLocation(goal: string) {

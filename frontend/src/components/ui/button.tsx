@@ -3,10 +3,14 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "reac
 import { cn } from "@/lib/utils";
 
 const variants = {
-  primary: "bg-saffron text-white hover:bg-orange-600 shadow-lg shadow-orange-500/20",
-  secondary: "bg-navy text-white hover:bg-slate-800",
-  outline: "border border-slate-300 bg-white text-navy hover:bg-slate-50",
-  ghost: "text-slate-700 hover:bg-slate-100"
+  primary:
+    "bg-saffron text-white hover:bg-orange-600 shadow-lg shadow-orange-500/20",
+  secondary:
+    "bg-navy text-white hover:bg-slate-800 dark:bg-dark-text dark:text-dark-surface dark:hover:bg-dark-muted",
+  outline:
+    "border border-slate-300 bg-white text-navy hover:bg-slate-50 dark:border-dark-border dark:bg-transparent dark:text-dark-text dark:hover:bg-dark-border",
+  ghost:
+    "text-slate-700 hover:bg-slate-100 dark:text-dark-muted dark:hover:bg-dark-border",
 };
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {

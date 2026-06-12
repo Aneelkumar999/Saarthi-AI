@@ -105,10 +105,9 @@ export default function ChatPage() {
             ]).map((item) => <p key={item} className="rounded-2xl bg-slate-50 p-3 font-semibold">{item}</p>)}
           </div>
           {roadmap && (
-            <div className="mt-5 grid gap-3">
-              <Link href="/workflow" className="rounded-2xl bg-navy px-5 py-3 text-center text-sm font-bold text-white">View Roadmap</Link>
-              <Link href="/workflow" className="rounded-2xl border border-slate-200 px-5 py-3 text-center text-sm font-bold text-navy">View Workflow</Link>
-            </div>
+            <Link href="/workflow" className="mt-4 block rounded-2xl bg-navy px-5 py-3 text-center text-sm font-bold text-white">
+              Open Workflow
+            </Link>
           )}
         </Card>
       </div>

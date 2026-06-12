@@ -188,3 +188,23 @@ class AuditLog(Base):
     action = Column(String, nullable=False)
     detail = Column(JSON, default={})
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+
+class WhatsAppSession(Base):
+    __tablename__ = "whatsapp_sessions"
+    id = Column(Integer, primary_key=True, index=True)
+    phone_number = Column(String, unique=True, index=True, nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=True)
+    data = Column(JSON, default={})
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class WhatsAppLog(Base):
+    __tablename__ = "whatsapp_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    phone_number = Column(String, nullable=False, index=True)
+    direction = Column(String, nullable=False)
+    message_text = Column(String, nullable=True)
+    message_id = Column(String, nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())

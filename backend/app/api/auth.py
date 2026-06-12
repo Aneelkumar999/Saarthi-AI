@@ -1,11 +1,16 @@
 import hashlib
+import json
 import os
 from datetime import timedelta
+from urllib.request import urlopen
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.services.email_service import send_otp_email
+from app.services.sms_service import send_otp_sms
 from app.core.security import (
     create_access_token, create_refresh_token,
     detect_channel, generate_otp, get_current_user,
@@ -83,6 +88,11 @@ def _send_otp_logic(db: Session, identifier: str, purpose: str, ip_address: str,
         user_agent=user_agent,
     ))
     db.commit()
+
+    if channel == "email":
+        send_otp_email(normalized, otp, purpose)
+    elif channel == "phone":
+        send_otp_sms(normalized, otp)
 
     dev_mode = os.getenv("AUTH_DEV_MODE", "true").lower() == "true"
     masked = mask_destination(normalized, channel)
@@ -256,15 +266,18 @@ def verify_otp(request: VerifyOtpRequest, db: Session = Depends(get_db)):
 
 @router.post("/signup", response_model=TokenResponse)
 def signup(request: SignupRequest, http_request: Request, db: Session = Depends(get_db)):
-    phone = normalize_phone(request.phone_number)
     email = validate_email(request.email)
 
-    if db.query(models.User).filter(models.User.phone == phone).first():
-        raise HTTPException(status_code=409, detail="Phone number already registered")
     if db.query(models.User).filter(models.User.email == email).first():
         raise HTTPException(status_code=409, detail="Email already registered")
 
-    otp_record = _verify_otp_logic(db, phone, request.otp, "signup")
+    phone = None
+    if request.phone_number:
+        phone = normalize_phone(request.phone_number)
+        if db.query(models.User).filter(models.User.phone == phone).first():
+            raise HTTPException(status_code=409, detail="Phone number already registered")
+
+    _verify_otp_logic(db, email, request.otp, "signup")
 
     user = models.User(
         name=request.name,
@@ -284,7 +297,7 @@ def signup(request: SignupRequest, http_request: Request, db: Session = Depends(
     db.commit()
     db.refresh(user)
 
-    _create_session(db, user, _get_client_ip(http_request), _get_user_agent(http_request), "phone", phone)
+    _create_session(db, user, _get_client_ip(http_request), _get_user_agent(http_request), "email", email)
 
     return TokenResponse(**_create_tokens(user, db))
 
@@ -365,3 +378,128 @@ def me(current_user: models.User = Depends(get_current_user)):
         avatar_url=current_user.avatar_url,
         created_at=current_user.created_at.isoformat() if current_user.created_at else None,
     )
+
+
+# ── Firebase Phone Auth ─────────────────────────────────────────────
+
+_FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID", "saarthi-ai-bcc29")
+_google_keys_cache: dict = {}
+_google_keys_fetched_at: float = 0
+
+
+def _get_google_public_keys() -> dict:
+    global _google_keys_cache, _google_keys_fetched_at
+    import time
+    now = time.time()
+    if _google_keys_cache and (now - _google_keys_fetched_at) < 3600:
+        return _google_keys_cache
+    url = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com"
+    try:
+        with urlopen(url, timeout=10) as resp:
+            _google_keys_cache = json.loads(resp.read())
+            _google_keys_fetched_at = now
+            return _google_keys_cache
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Unable to fetch Firebase public keys: {exc}")
+
+
+def _verify_firebase_token(id_token: str) -> dict:
+    import jwt as pyjwt
+
+    unverified = pyjwt.decode(id_token, options={"verify_signature": False})
+    kid = unverified.get("kid")
+    if not kid:
+        raise HTTPException(status_code=401, detail="Invalid Firebase token: missing kid")
+
+    keys = _get_google_public_keys()
+    if kid not in keys:
+        raise HTTPException(status_code=401, detail="Invalid Firebase token: unknown key")
+
+    from cryptography.x509 import load_pem_x509_certificate
+    cert = load_pem_x509_certificate(keys[kid].encode())
+    public_key = cert.public_key()
+
+    from cryptography.hazmat.primitives.asymmetric import padding
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.backends import default_backend
+
+    try:
+        payload = pyjwt.decode(
+            id_token,
+            public_key,
+            algorithms=["RS256"],
+            audience=_FIREBASE_PROJECT_ID,
+            issuer=f"https://securetoken.google.com/{_FIREBASE_PROJECT_ID}",
+        )
+    except pyjwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Firebase token expired")
+    except pyjwt.InvalidTokenError as exc:
+        raise HTTPException(status_code=401, detail=f"Invalid Firebase token: {exc}")
+
+    return payload
+
+
+class FirebaseLoginRequest(BaseModel):
+    id_token: str
+    name: str | None = None
+
+
+@router.post("/firebase-login", response_model=TokenResponse)
+def firebase_login(request: FirebaseLoginRequest, http_request: Request, db: Session = Depends(get_db)):
+    payload = _verify_firebase_token(request.id_token)
+
+    uid = payload.get("sub")
+    phone = payload.get("phone_number")
+    firebase_email = payload.get("email")
+
+    if not uid:
+        raise HTTPException(status_code=401, detail="Firebase token missing user ID")
+
+    user = None
+    if phone:
+        user = db.query(models.User).filter(models.User.phone == phone).first()
+    if not user and firebase_email:
+        user = db.query(models.User).filter(models.User.email == firebase_email).first()
+    if not user:
+        user = db.query(models.User).filter(
+            models.User.demographics.isnot(None),
+            models.User.name == "Firebase Citizen",
+        ).first() if not phone and not firebase_email else None
+
+    if user:
+        if phone and not user.phone:
+            user.phone = phone
+        if firebase_email and not user.email:
+            user.email = firebase_email
+        if request.name and not user.name:
+            user.name = request.name
+        user.is_verified = True
+    else:
+        display_name = request.name or "Citizen"
+        if phone:
+            display_name = request.name or f"User {phone[-4:]}"
+        if firebase_email:
+            display_name = request.name or firebase_email.split("@")[0]
+
+        user = models.User(
+            phone=phone,
+            email=firebase_email,
+            name=display_name,
+            is_verified=True,
+        )
+        db.add(user)
+        db.flush()
+
+        db.add(models.UserProfile(
+            user_id=user.id,
+            full_name=display_name,
+            phone=phone,
+            email=firebase_email,
+        ))
+
+    db.commit()
+    db.refresh(user)
+
+    _create_session(db, user, _get_client_ip(http_request), _get_user_agent(http_request), "phone", phone or "")
+
+    return TokenResponse(**_create_tokens(user, db))

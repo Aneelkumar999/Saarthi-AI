@@ -1,8 +1,12 @@
 "use client";
 
-import { CheckCircle2, Clock3, LockKeyhole, MapPin, Upload, Check } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, Clock3, LockKeyhole, MapPin, Upload, Check, ExternalLink, Building2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { createMockDocument, saveDocument, getDocuments } from "@/lib/journey";
+import { getToken, getStoredUser } from "@/lib/auth";
+import { submitToGovPortal } from "@/lib/api";
 
 const statusIcon = {
   Ready: CheckCircle2,
@@ -53,9 +57,44 @@ function getDocTypeFromName(docName: string): string {
   return "Document";
 }
 
-export function WorkflowStep({ step, onUpload }: { step: { id: number; title: string; dept: string; status: string; days: string; documents: string[] }; onUpload?: () => void }) {
+type WorkflowStepData = {
+  id: number;
+  title: string;
+  dept: string;
+  status: string;
+  days: string;
+  documents: string[];
+  portal_id?: string | null;
+  portal_name?: string | null;
+};
+
+export function WorkflowStep({ step, onUpload }: { step: WorkflowStepData; onUpload?: () => void }) {
   const Icon = statusIcon[step.status as keyof typeof statusIcon] ?? Clock3;
   const uploadedTypes = getUploadedDocTypes();
+
+  const [submitting, setSubmitting] = useState(false);
+  const [submitResult, setSubmitResult] = useState<{ ref: string; url: string } | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  async function handlePortalSubmit() {
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const token = getToken();
+      if (!token) { setSubmitError("Please login first"); setSubmitting(false); return; }
+      const user = getStoredUser();
+      const result = await submitToGovPortal(token, step.portal_id!, step.title, {
+        applicant_name: user?.name || "Citizen",
+        service: step.title,
+        department: step.dept,
+      });
+      setSubmitResult({ ref: result.application_ref, url: result.tracking_url });
+    } catch (e: unknown) {
+      setSubmitError(e instanceof Error ? e.message : "Submission failed");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   function handleUpload(docName: string) {
     const input = document.createElement("input");
@@ -116,6 +155,39 @@ export function WorkflowStep({ step, onUpload }: { step: { id: number; title: st
           <p className="mt-1 text-slate-500">Estimated {step.days}</p>
         </div>
       </div>
+      {step.portal_id && (
+        <div className="mt-4 border-t border-slate-100 pt-4">
+          {submitResult ? (
+            <div className="rounded-xl bg-teal-50 p-3 text-sm">
+              <p className="font-semibold text-teal-800 flex items-center gap-1.5">
+                <Check size={16} /> Submitted to {step.portal_name}
+              </p>
+              <p className="mt-1 text-teal-600">Ref: {submitResult.ref}</p>
+              <a href={submitResult.url} target="_blank" rel="noopener noreferrer"
+                className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-navy underline">
+                Track on portal <ExternalLink size={12} />
+              </a>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                <Building2 size={16} />
+                <span>Submit via <strong>{step.portal_name}</strong></span>
+              </div>
+              <div className="flex gap-2">
+                <a href={`https://www.meeseva.telangana.gov.in`} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                  Open Portal <ExternalLink size={12} />
+                </a>
+                <Button variant="secondary" className="rounded-xl px-4 py-1.5 text-xs" onClick={handlePortalSubmit} disabled={submitting}>
+                  {submitting ? "Submitting..." : "Submit Now"}
+                </Button>
+              </div>
+            </div>
+          )}
+          {submitError && <p className="mt-2 text-xs font-semibold text-red-500">{submitError}</p>}
+        </div>
+      )}
     </Card>
   );
 }

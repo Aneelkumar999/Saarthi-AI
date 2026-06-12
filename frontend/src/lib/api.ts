@@ -41,7 +41,7 @@ export async function verifyOtp(identifier: string, otp: string, purpose: string
   return data as { success: boolean; message: string; verified: boolean; token?: string | null };
 }
 
-export async function signup(name: string, email: string, phone_number: string, otp: string) {
+export async function signup(name: string, email: string, phone_number: string | undefined, otp: string) {
   const response = await fetch(`${API_BASE_URL}/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -60,6 +60,17 @@ export async function loginOtp(identifier: string, otp: string) {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(await parseError(response, "Invalid OTP"));
+  return data as { access_token: string; refresh_token: string; token_type: string; expires_in: number; user: AuthUser };
+}
+
+export async function firebaseLogin(id_token: string, name?: string) {
+  const response = await fetch(`${API_BASE_URL}/auth/firebase-login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id_token, name })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(await parseError(response, "Firebase authentication failed"));
   return data as { access_token: string; refresh_token: string; token_type: string; expires_in: number; user: AuthUser };
 }
 
@@ -201,5 +212,76 @@ export async function fetchAdminKnowledgeBase() {
 export async function fetchAdminAudit() {
   const response = await fetch(`${API_BASE_URL}/admin/audit`);
   if (!response.ok) throw new Error("Failed to fetch audit logs");
+  return response.json();
+}
+
+export type GovPortal = {
+  id: string;
+  name: string;
+  base_url: string;
+  description: string;
+  auth_type: string;
+  supported_services: string[];
+  status: string;
+};
+
+export async function fetchGovPortals() {
+  const response = await fetch(`${API_BASE_URL}/gov/portals`);
+  if (!response.ok) throw new Error("Failed to fetch government portals");
+  return response.json() as Promise<GovPortal[]>;
+}
+
+export async function fetchPortalForService(serviceName: string) {
+  const response = await fetch(`${API_BASE_URL}/gov/service/${encodeURIComponent(serviceName)}/portal`);
+  if (!response.ok) return null;
+  return response.json() as Promise<GovPortal>;
+}
+
+export async function submitToGovPortal(token: string, portalId: string, serviceName: string, formData: Record<string, unknown>) {
+  const response = await fetch(`${API_BASE_URL}/gov/submit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ portal_id: portalId, service_name: serviceName, form_data: formData })
+  });
+  if (!response.ok) throw new Error(await parseError(response, "Failed to submit application"));
+  return response.json() as Promise<{
+    success: boolean;
+    portal: string;
+    portal_name: string;
+    service: string;
+    application_ref: string;
+    status: string;
+    message: string;
+    tracking_url: string;
+    submitted_at: string;
+  }>;
+}
+
+export async function checkGovStatus(token: string, portalId: string, applicationRef: string) {
+  const response = await fetch(`${API_BASE_URL}/gov/status`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ portal_id: portalId, application_ref: applicationRef })
+  });
+  if (!response.ok) throw new Error(await parseError(response, "Failed to check status"));
+  return response.json() as Promise<{
+    success: boolean;
+    portal: string;
+    portal_name: string;
+    application_ref: string;
+    status: string;
+    stage: string;
+    estimated_completion: string;
+    last_updated: string;
+  }>;
+}
+
+export async function fetchDocFromGov(token: string, docType: string, portalId: string = "digilocker") {
+  const response = await fetch(`${API_BASE_URL}/gov/fetch-document/${encodeURIComponent(docType)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ portal_id: portalId })
+  });
+  if (!response.ok) throw new Error(await parseError(response, "Failed to fetch document"));
   return response.json();
 }

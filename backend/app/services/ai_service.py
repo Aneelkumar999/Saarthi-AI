@@ -7,6 +7,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from app.models import models
+from app.services.gov_api_service import gov_api_service
+from app.services.rag_service import rag_service
 
 try:
     import google.generativeai as genai
@@ -76,13 +78,16 @@ class AIService:
         intents = self._get_available_intents(db)
         intent_list = ", ".join([i['name'] for i in intents])
 
+        rag_context = await rag_service.format_context(message, max_items=4)
+
         # 1. Try OpenAI
         if self.llm:
             prompt = ChatPromptTemplate.from_template(
                 "You are Saarthi AI (सारथी), an expert guide for Indian citizens. You help them navigate government services, licenses, and schemes.\n"
                 "Your tone is professional, helpful, and empathetic. Use a mix of English and Hindi/Telugu terms if appropriate (e.g., 'Namaste', 'Saarthi').\n\n"
                 "Context of available roadmaps we can generate: {intent_list}\n"
-                "Additional Context: {context}\n\n"
+                "Additional Context: {context}\n"
+                "RAG Context from Knowledge Base:\n{rag_context}\n\n"
                 "Citizen: {message}\n"
                 "Saarthi AI:"
             )
@@ -92,6 +97,7 @@ class AIService:
                 result = await chain.ainvoke({
                     "message": message,
                     "context": context,
+                    "rag_context": rag_context or "No additional context found.",
                     "intent_list": intent_list
                 })
                 return result.content
@@ -99,6 +105,8 @@ class AIService:
                 print(f"AI Chat Error (likely quota): {e}")
 
         # 2. Fallback Response (Non-AI)
+        if rag_context:
+            return f"Namaste! I am your Saarthi. Based on our knowledge base, I found relevant information. Please type your goal clearly, and I will build a roadmap for you.\n\n{rag_context[:500]}"
         return f"Namaste! I am your Saarthi. I can guide you through services like {intent_list}. Please type your goal clearly, and I will build a roadmap for you."
 
     async def generate_roadmap(self, db: Session, message: str):
@@ -106,6 +114,7 @@ class AIService:
         if self.gemini_model:
             intents = self._get_available_intents(db)
             intent_descriptions = "\n".join([f"- {i['name']}: {i['description']}" for i in intents])
+            rag_context = await rag_service.format_context(message, max_items=3)
             prompt = f"""
 You are Saarthi AI, an expert Telangana government services navigator.
 Generate a citizen-specific roadmap for the citizen goal below.
@@ -114,6 +123,9 @@ Citizen goal: {message}
 
 Available known service categories:
 {intent_descriptions}
+
+Retrieved context from knowledge base:
+{rag_context or 'No additional context.'}
 
 Return ONLY valid JSON. No markdown. No explanations outside JSON.
 Use this exact schema:
@@ -232,13 +244,16 @@ Rules:
             else:
                 status = "Pending"
 
+            portal = gov_api_service.get_portal_for_service(svc.name)
             steps.append({
                 "id": idx + 1,
                 "title": svc.name,
                 "dept": svc.department,
                 "status": status,
                 "days": f"{max(1, svc.sla_days // 2)}-{svc.sla_days} days",
-                "documents": self._get_documents_for_service(svc.name)
+                "documents": self._get_documents_for_service(svc.name),
+                "portal_id": portal["id"] if portal else None,
+                "portal_name": portal["name"] if portal else None,
             })
             total_days += svc.sla_days
 
@@ -369,13 +384,17 @@ Rules:
         steps = data.get("steps") or []
         normalized_steps = []
         for index, step in enumerate(steps, start=1):
+            step_title = str(step.get("title") or "Government service step")
+            portal = gov_api_service.get_portal_for_service(step_title)
             normalized_steps.append({
                 "id": int(step.get("id") or index),
-                "title": str(step.get("title") or "Government service step"),
+                "title": step_title,
                 "dept": str(step.get("dept") or "Relevant department"),
                 "status": str(step.get("status") or ("Ready" if index == 1 else "Pending")),
                 "days": str(step.get("days") or "3-7 days"),
-                "documents": [str(doc) for doc in (step.get("documents") or ["Aadhaar", "Address proof"])]
+                "documents": [str(doc) for doc in (step.get("documents") or ["Aadhaar", "Address proof"])],
+                "portal_id": step.get("portal_id") or (portal["id"] if portal else None),
+                "portal_name": step.get("portal_name") or (portal["name"] if portal else None),
             })
 
         if not normalized_steps:
@@ -385,7 +404,9 @@ Rules:
                 "dept": "MeeSeva / Relevant department",
                 "status": "Ready",
                 "days": "1-3 days",
-                "documents": ["Aadhaar", "Address proof"]
+                "documents": ["Aadhaar", "Address proof"],
+                "portal_id": "meeseva",
+                "portal_name": "MeeSeva",
             }]
 
         return {

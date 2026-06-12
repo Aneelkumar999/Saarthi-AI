@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle2, Loader2, Send, Sparkles, ArrowRight, ArrowLeft, Shield } from "lucide-react";
+import { CheckCircle2, Loader2, Send, Sparkles, ArrowRight, ArrowLeft, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { sendOtp, signup } from "@/lib/api";
@@ -14,9 +14,7 @@ export default function SignupPage() {
   const [step, setStep] = useState<"details" | "otp">("details");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  const [devOtp, setDevOtp] = useState<string | null>(null);
   const [maskedDest, setMaskedDest] = useState("");
   const [countdown, setCountdown] = useState(0);
   const [message, setMessage] = useState("");
@@ -32,7 +30,8 @@ export default function SignupPage() {
   function handleBack() {
     setStep("details");
     setOtp("");
-    setDevOtp(null);
+    setMaskedDest("");
+    setCountdown(0);
     setMessage("");
     setError("");
   }
@@ -42,12 +41,11 @@ export default function SignupPage() {
     setMessage("");
     if (!name.trim()) { setError("Enter your full name"); return; }
     if (!email.trim() || !email.includes("@")) { setError("Enter a valid email address"); return; }
-    if (!phone.trim()) { setError("Enter your mobile number"); return; }
+
     setLoading("send");
     try {
-      const response = await sendOtp(phone, "signup");
+      const response = await sendOtp(email, "signup");
       setStep("otp");
-      setDevOtp(response.dev_otp ?? null);
       setMaskedDest(response.masked_destination);
       setCountdown(30);
       setMessage(`OTP sent to ${response.masked_destination}`);
@@ -62,14 +60,15 @@ export default function SignupPage() {
     setError("");
     setMessage("");
     if (otp.length !== 6) { setError("Enter the 6-digit OTP"); return; }
+
     setLoading("signup");
     try {
-      const response = await signup(name, email, phone, otp);
+      const response = await signup(name, email, undefined, otp);
       saveAuth(response.access_token, response.user, response.refresh_token);
-      setMessage("Account created successfully! Redirecting...");
+      setMessage("Account created! Redirecting...");
       setTimeout(() => router.push("/dashboard"), 500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to register");
+      setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
       setLoading(null);
     }
@@ -77,7 +76,6 @@ export default function SignupPage() {
 
   function handleResendOtp() {
     setOtp("");
-    setDevOtp(null);
     handleSendOtp();
   }
 
@@ -89,10 +87,9 @@ export default function SignupPage() {
             <Sparkles size={32} />
           </div>
           <h1 className="text-2xl font-black text-navy">Create Account</h1>
-          <p className="mt-1 text-sm text-slate-500">Join Saarthi AI for government services</p>
+          <p className="mt-1 text-sm text-slate-500">Join Saarthi AI with email OTP</p>
         </div>
 
-        {/* Step indicator */}
         <div className="flex gap-2 mb-6">
           {[1, 2].map((s, i) => (
             <div key={s} className="flex-1 flex items-center gap-2">
@@ -119,31 +116,23 @@ export default function SignupPage() {
               disabled={loading !== null}
             />
 
-            <label className="mt-4 block text-sm font-bold text-slate-700">Email Address</label>
+            <div className="flex items-center gap-2 mt-4 mb-2">
+              <Mail size={16} className="text-slate-500" />
+              <label className="text-sm font-bold text-slate-700">Email Address</label>
+            </div>
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               type="email"
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3.5 text-navy outline-none focus:border-saffron focus:ring-2 focus:ring-saffron/20 transition"
+              className="w-full rounded-xl border border-slate-200 px-4 py-3.5 text-navy outline-none focus:border-saffron focus:ring-2 focus:ring-saffron/20 transition"
               placeholder="you@example.com"
               disabled={loading !== null}
               autoComplete="email"
             />
 
-            <label className="mt-4 block text-sm font-bold text-slate-700">Mobile Number</label>
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              type="tel"
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3.5 text-navy outline-none focus:border-saffron focus:ring-2 focus:ring-saffron/20 transition"
-              placeholder="+91 98765 43210"
-              disabled={loading !== null}
-              autoComplete="tel-national"
-            />
-
             <Button
               onClick={handleSendOtp}
-              disabled={loading !== null || !name.trim() || !email.trim() || !phone.trim()}
+              disabled={loading !== null || !name.trim() || !email.trim() || !email.includes("@")}
               className="mt-6 w-full gap-2 py-3.5"
             >
               {loading === "send" ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
@@ -155,7 +144,7 @@ export default function SignupPage() {
         {step === "otp" && (
           <>
             <div className="rounded-xl bg-slate-50 p-4 mb-5">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 text-center">
                 OTP sent to <span className="font-bold text-navy">{maskedDest}</span>
               </p>
             </div>
@@ -174,13 +163,6 @@ export default function SignupPage() {
               autoFocus
               maxLength={6}
             />
-
-            {devOtp && (
-              <div className="mt-3 rounded-xl border border-dashed border-amber-300 bg-amber-50 p-3 text-center">
-                <p className="text-xs text-amber-600 font-semibold">DEVELOPMENT MODE</p>
-                <p className="text-lg font-black text-amber-700 tracking-widest mt-1">{devOtp}</p>
-              </div>
-            )}
 
             <Button
               onClick={handleSignup}

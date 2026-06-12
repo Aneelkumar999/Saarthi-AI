@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
-import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
 import { Card, StatCard } from "@/components/ui/card";
 
@@ -101,10 +100,6 @@ export default function DashboardPage() {
         <StatCard label="Documents ready" value={String(data.uploaded_documents)} tone="green" />
         <StatCard label="Estimated days saved" value={String(data.days_saved)} tone="saffron" />
         <StatCard label="Eligible schemes" value={String(data.eligible_schemes)} />
-      </div>
-
-      <div className="mt-8">
-        <DemoBanner />
       </div>
 
       <div className="mt-8">
