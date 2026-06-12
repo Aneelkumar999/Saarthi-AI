@@ -17,3 +17,4 @@ next.log
 # OS
 .DS_Store
 Thumbs.db
+backend/saarthi.db

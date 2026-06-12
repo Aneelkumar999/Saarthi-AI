@@ -142,6 +142,7 @@ def _verify_otp_logic(db: Session, identifier: str, otp: str, purpose: str) -> m
     return otp_record
 
 
+
 def _create_tokens(user: models.User, db: Session) -> dict:
     access = create_access_token(user)
     _, raw_refresh = create_refresh_token(user, db)
