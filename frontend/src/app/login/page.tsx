@@ -7,7 +7,7 @@ import { Loader2, Send, ArrowRight, Shield, Mail, User, ShieldCheck } from "luci
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { sendOtp, loginOtp } from "@/lib/api";
-import { saveAuth } from "@/lib/auth";
+import { saveAuth, setLoginMode } from "@/lib/auth";
 
 type LoginMode = "citizen" | "admin";
 
@@ -85,6 +85,7 @@ export default function LoginPage() {
       }
 
       saveAuth(response.access_token, response.user, response.refresh_token);
+      setLoginMode(mode);
 
       if (mode === "admin") {
         setMessage("Admin login successful. Redirecting to admin panel...");

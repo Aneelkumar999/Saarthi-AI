@@ -487,3 +487,52 @@ async def admin_documents(db: Session = Depends(get_db)):
             "created_at": d.created_at.isoformat() if d.created_at else "",
         })
     return result
+
+# ── Admin: Citizen Journeys ────────────────────────────────────────────
+@router.get("/admin/journeys")
+async def admin_journeys(db: Session = Depends(get_db)):
+    journeys = db.query(models.UserJourney).order_by(models.UserJourney.created_at.desc()).all()
+    result = []
+    for j in journeys:
+        user = db.query(models.User).filter(models.User.id == j.user_id).first()
+        intent = db.query(models.Intent).filter(models.Intent.id == j.intent_id).first()
+        steps = db.query(models.JourneyStep).filter(models.JourneyStep.journey_id == j.id).all()
+        step_list = []
+        for s in steps:
+            svc = db.query(models.Service).filter(models.Service.id == s.service_id).first()
+            step_list.append({
+                "id": s.id,
+                "service_name": svc.name if svc else "Unknown",
+                "service_dept": svc.department if svc else "",
+                "status": s.status,
+            })
+        result.append({
+            "id": j.id,
+            "user_name": user.name if user else "Unknown",
+            "user_email": user.email if user else "",
+            "intent_name": intent.name if intent else "Unknown",
+            "status": j.status,
+            "steps": step_list,
+            "created_at": j.created_at.isoformat() if j.created_at else "",
+        })
+    return result
+
+# ── Admin: User Schemes ────────────────────────────────────────────────
+@router.get("/admin/user-schemes")
+async def admin_user_schemes(db: Session = Depends(get_db)):
+    user_schemes = db.query(models.UserScheme).order_by(models.UserScheme.created_at.desc()).all()
+    result = []
+    for us in user_schemes:
+        user = db.query(models.User).filter(models.User.id == us.user_id).first()
+        scheme = db.query(models.Scheme).filter(models.Scheme.id == us.scheme_id).first()
+        result.append({
+            "id": us.id,
+            "user_name": user.name if user else "Unknown",
+            "user_email": user.email if user else "",
+            "scheme_name": scheme.name if scheme else "Unknown",
+            "scheme_description": scheme.description if scheme else "",
+            "status": us.status,
+            "applied_at": us.applied_at.isoformat() if us.applied_at else None,
+            "created_at": us.created_at.isoformat() if us.created_at else "",
+        })
+    return result

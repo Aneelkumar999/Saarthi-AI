@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { LogOut, Menu, X, Sparkles, Sun, Moon, ChevronDown } from "lucide-react";
 import { navItems, adminNavItem } from "@/lib/data";
 import { cn } from "@/lib/utils";
-import { getStoredUser, getToken, logout, isAdmin } from "@/lib/auth";
+import { getStoredUser, getToken, logout, isAdmin, getLoginMode } from "@/lib/auth";
 import { useIsClient } from "@/lib/use-is-client";
 import { useTheme } from "@/providers/theme-provider";
 import { useTranslation } from "@/providers/language-provider";
@@ -67,7 +67,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
 
           <nav className="hidden items-center gap-1 lg:flex">
-            {[...navItems, ...(isAdmin() ? [adminNavItem] : [])].map((item) => (
+            {(getLoginMode() === "admin" ? [adminNavItem] : [...navItems]).map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -173,7 +173,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
             </div>
             <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
-              {[...navItems, ...(isAdmin() ? [adminNavItem] : [])].map((item) => (
+              {(getLoginMode() === "admin" ? [adminNavItem] : [...navItems]).map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
